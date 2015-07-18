@@ -1,0 +1,20 @@
+# Telegram bot API token. Ask @botfather for one.
+token = ???
+
+# Google API key (for youtube search)
+googlekey = ???
+
+# User agent (when we are impersonating a legitimate browser)
+useragent = Mozilla/5.0 (Windows NT 6.3; WOW64; rv:38.0) Gecko/20100101 Firefox/38.0
+
+# Admin list (comma-separated). You want to include your id here. Type !id to check your id.
+sudo = 
+
+# Banned ids (comma-separated). Chat or user ids that are banned from issuing any commands to the bot.
+banned =
+
+# Moderator list for quotes plugin.
+quotes_sudo = 
+
+# Path to ffmpeg for voice plugin.
+ffmpeg = /path/to/ffmpeg
