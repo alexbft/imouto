@@ -3,6 +3,7 @@ mime = require 'mime'
 Entities = require('html-entities').AllHtmlEntities
 logger = require 'winston'
 config = require './config'
+fs = require 'fs'
 
 pq = require './promise'
 
@@ -100,3 +101,16 @@ exports.tryParseInt = (s) ->
         x
     else
         null
+
+exports.loadJson = (fileId) ->
+    fn = __dirname + "/../data/#{fileId}.json"
+    if fs.existsSync fn
+        content = fs.readFileSync fn, encoding: 'utf8'
+        JSON.parse content
+    else
+        null
+
+exports.saveJson = (fileId, data) ->
+    fn = __dirname + "/../data/#{fileId}.json"
+    fs.writeFileSync fn, JSON.stringify(data), encoding: 'utf8'
+    return

@@ -2,4 +2,5 @@ config/main.config
 logs/*.log
 data/*.txt
 data/*.bak
+data/*.json
 node_modules

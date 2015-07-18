@@ -1,5 +1,6 @@
 logger = require 'winston'
 
+msgCache = require './msg_cache'
 query = require './query'
 
 exports.sendMessage = (args) ->
@@ -17,6 +18,9 @@ exports.sendPhoto = (args) ->
 exports.forwardMessage = (args) ->
     logger.outMsg "(#{args.chat_id}) <<< [Forward: #{args.message_id}]"
     query 'forwardMessage', args
+    .then (msg) ->
+        msgCache.add msg
+        msg
 
 exports.sendAudio = (args) ->
     logger.outMsg "(#{args.chat_id}) <<< [Audio (#{args.audio.value?.length} bytes)]"

@@ -74,7 +74,7 @@ exports.add = (msg, posterId) ->
             isMatch = true
             for qmsg, j in q.messages
                 quotemsg = quote.messages[j]
-                if not (qmsg.text != null and qmsg.text == quotemsg.text and qmsg.sender == quotemsg.sender)
+                if not (qmsg.text? and qmsg.text == quotemsg.text and qmsg.sender == quotemsg.sender)
                     isMatch = false
                     break
             if isMatch 

@@ -46,9 +46,31 @@ module.exports = class Bot
         if msg.chat.title?
             buf.push "(#{msg.chat.id})#{msg.chat.title}"
         buf.push "(#{msg.from.id})#{misc.fullName(msg.from)}"
+        if msg.forward_from?
+            buf.push "(from #{misc.fullName(msg.forward_from)})"
         buf.push ">>>"
         if msg.text?
             buf.push msg.text
+        else if msg.new_chat_participant?
+            buf.push "(added user #{misc.fullName(msg.new_chat_participant)})"
+        else if msg.left_chat_participant?
+            buf.push "(removed user #{misc.fullName(msg.left_chat_participant)})"
+        else if msg.new_chat_title?
+            buf.push "(renamed chat to #{msg.new_chat_title})"
+        else if msg.audio?
+            buf.push "(audio)"
+        else if msg.document?
+            buf.push "(document)"
+        else if msg.photo?
+            buf.push "(photo)"
+        else if msg.sticker?
+            buf.push "(sticker)"
+        else if msg.video?
+            buf.push "(video)"
+        else if msg.contact?
+            buf.push "(contact: #{msg.first_name} #{msg.phone_number})"
+        else if msg.location?
+            buf.push "(location: #{msg.longitute} #{msg.latitude})"
         else
             buf.push "(no text)"
         logger.inMsg buf.join(" ")

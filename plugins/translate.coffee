@@ -20,8 +20,12 @@ module.exports =
     pattern: /!(переведи|translate|перевод|расшифруй)( [a-z]{2})?( [a-z]{2})?(?: ([^]+))?$/
 
     onMsg: (msg, safe) ->
-        src = (msg.match[2] ? 'auto').trim()
-        dest = (msg.match[3] ? 'ru').trim()
+        if msg.match[2]? and not msg.match[3]?
+            src = 'auto'
+            dest = msg.match[3].trim()
+        else
+            src = (msg.match[2] ? 'auto').trim()
+            dest = (msg.match[3] ? 'ru').trim()
         if src == 'auto' and msg.match[1].toLowerCase() == 'расшифруй'
             src = 'ja'
         if msg.match[4]?

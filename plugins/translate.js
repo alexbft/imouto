@@ -36,8 +36,13 @@ module.exports = {
   pattern: /!(переведи|translate|перевод|расшифруй)( [a-z]{2})?( [a-z]{2})?(?: ([^]+))?$/,
   onMsg: function(msg, safe) {
     var dest, ref, ref1, ref2, src, text;
-    src = ((ref = msg.match[2]) != null ? ref : 'auto').trim();
-    dest = ((ref1 = msg.match[3]) != null ? ref1 : 'ru').trim();
+    if ((msg.match[2] != null) && (msg.match[3] == null)) {
+      src = 'auto';
+      dest = msg.match[3].trim();
+    } else {
+      src = ((ref = msg.match[2]) != null ? ref : 'auto').trim();
+      dest = ((ref1 = msg.match[3]) != null ? ref1 : 'ru').trim();
+    }
     if (src === 'auto' && msg.match[1].toLowerCase() === 'расшифруй') {
       src = 'ja';
     }

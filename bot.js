@@ -65,9 +65,32 @@ module.exports = Bot = (function() {
       buf.push("(" + msg.chat.id + ")" + msg.chat.title);
     }
     buf.push("(" + msg.from.id + ")" + (misc.fullName(msg.from)));
+    if (msg.forward_from != null) {
+      buf.push("(from " + (misc.fullName(msg.forward_from)) + ")");
+    }
     buf.push(">>>");
     if (msg.text != null) {
       buf.push(msg.text);
+    } else if (msg.new_chat_participant != null) {
+      buf.push("(added user " + (misc.fullName(msg.new_chat_participant)) + ")");
+    } else if (msg.left_chat_participant != null) {
+      buf.push("(removed user " + (misc.fullName(msg.left_chat_participant)) + ")");
+    } else if (msg.new_chat_title != null) {
+      buf.push("(renamed chat to " + msg.new_chat_title + ")");
+    } else if (msg.audio != null) {
+      buf.push("(audio)");
+    } else if (msg.document != null) {
+      buf.push("(document)");
+    } else if (msg.photo != null) {
+      buf.push("(photo)");
+    } else if (msg.sticker != null) {
+      buf.push("(sticker)");
+    } else if (msg.video != null) {
+      buf.push("(video)");
+    } else if (msg.contact != null) {
+      buf.push("(contact: " + msg.first_name + " " + msg.phone_number + ")");
+    } else if (msg.location != null) {
+      buf.push("(location: " + msg.longitute + " " + msg.latitude + ")");
     } else {
       buf.push("(no text)");
     }
