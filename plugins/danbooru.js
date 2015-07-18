@@ -20,7 +20,6 @@ posts = function(q) {
 module.exports = {
   name: 'Danbooru',
   pattern: /!(няша|nyasha)(?:\s+(.+))?/,
-  isConf: true,
   onMsg: function(msg, safe) {
     var q;
     q = msg.match[2];

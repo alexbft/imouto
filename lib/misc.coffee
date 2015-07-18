@@ -77,6 +77,9 @@ exports.download = (url, options = {}) ->
                 df.reject err
             else
                 ext = mime.extension contentType
+                if not ext? and contentType.indexOf('/') != -1
+                    logger.warn "Unknown extension for type: #{contentType}"
+                    ext = contentType.split('/')[1]
                 logger.info("Downloaded: #{url} - #{data.length} bytes (#{contentType}, #{ext})")
                 if ext == 'jpe'
                     ext = 'jpeg'
