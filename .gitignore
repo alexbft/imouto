@@ -1,4 +1,3 @@
-.gitignore
 config/main.config
 logs/*.log
 data/*.txt
