@@ -55,11 +55,12 @@ updateLoop = (bot) ->
         args.offset = lastUpdate + 1
     query('getUpdates', args, timeout: (TIMEOUT + 1) * 1000).then (upd) ->
         if upd.error?
-            logger.warn 'Waiting 30 seconds before retry...'
-            setTimeout -> 
-                logger.info 'Retrying getUpdates...'
-                updateLoop bot
-            , 30000
+            if !upd.error.startsWith 'Conflict'
+                logger.warn 'Waiting 30 seconds before retry...'
+                setTimeout -> 
+                    logger.info 'Retrying getUpdates...'
+                    updateLoop bot
+                , 30000
         else
             for u in upd
                 #console.log("Received update: " + JSON.stringify(u))

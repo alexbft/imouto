@@ -84,11 +84,13 @@ updateLoop = function(bot) {
   }).then(function(upd) {
     var i, len, u;
     if (upd.error != null) {
-      logger.warn('Waiting 30 seconds before retry...');
-      return setTimeout(function() {
-        logger.info('Retrying getUpdates...');
-        return updateLoop(bot);
-      }, 30000);
+      if (!upd.error.startsWith('Conflict')) {
+        logger.warn('Waiting 30 seconds before retry...');
+        return setTimeout(function() {
+          logger.info('Retrying getUpdates...');
+          return updateLoop(bot);
+        }, 30000);
+      }
     } else {
       for (i = 0, len = upd.length; i < len; i++) {
         u = upd[i];
