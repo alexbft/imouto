@@ -3,4 +3,5 @@ logs/*.log
 data/*.txt
 data/*.bak
 data/*.json
+plugins/_*.*
 node_modules

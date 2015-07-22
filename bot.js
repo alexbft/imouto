@@ -19,6 +19,7 @@ module.exports = Bot = (function() {
     this.plugins = [];
     this.sudoList = [];
     this.bannedIds = [];
+    this.startDate = Date.now();
   }
 
   Bot.prototype.onMessage = function(msg) {
@@ -201,7 +202,7 @@ module.exports = Bot = (function() {
   };
 
   Bot.prototype.isValidMsg = function(msg) {
-    return msg.from.id !== 777000;
+    return msg.from.id !== 777000 && (this.startDate - msg.date * 1000) <= 10000;
   };
 
   Bot.prototype.isSudo = function(msg) {

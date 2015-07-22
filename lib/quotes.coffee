@@ -33,7 +33,7 @@ fromMsg = (msg) ->
     sender: msg.forward_from?.id ? msg.from.id
     sender_name: if msg.forward_from? then misc.fullName(msg.forward_from) else misc.fullName(msg.from)
     chat_id: msg.chat.id
-    date: msg.date
+    date: msg.date * 1000
 
 exports.add = (msg, posterId) ->
     if not initialized
@@ -189,22 +189,31 @@ exports.updateUsers = ->
 saveQuotes = ->
     fs.writeFileSync fn, JSON.stringify(quotes)
 
-exports.importSavedNames = ->
-    ffn = __dirname + '/../data/quotes2.txt'
-    quotesOld = JSON.parse fs.readFileSync ffn
-    for q in quotesOld
-        if q.sender_name != '' and q.sender_name != 'Unknown'
-            qNew = getByNumber(q.num)
-            if qNew?
-                if qNew.version >= 3
-                    for mm in qNew.messages
-                        if mm.sender_name == '' or mm.sender_name == 'Unknown'
-                            mm.saved_name = q.sender_name
-                else
-                    if qNew.sender_name == '' or qNew.sender_name == 'Unknown'
-                        qNew.saved_name = q.sender_name
-    saveQuotes()
-    logger.info("Done!")
+# exports.importSavedNames = ->
+#     ffn = __dirname + '/../data/quotes2.txt'
+#     quotesOld = JSON.parse fs.readFileSync ffn
+#     for q in quotesOld
+#         if q.sender_name != '' and q.sender_name != 'Unknown'
+#             qNew = getByNumber(q.num)
+#             if qNew?
+#                 if qNew.version >= 3
+#                     for mm in qNew.messages
+#                         if mm.sender_name == '' or mm.sender_name == 'Unknown'
+#                             mm.saved_name = q.sender_name
+#                 else
+#                     if qNew.sender_name == '' or qNew.sender_name == 'Unknown'
+#                         qNew.saved_name = q.sender_name
+#     saveQuotes()
+#     logger.info("Done!")
+
+# exports.importSavedNames = ->
+#     for q in quotes
+#         if q.version >= 3
+#             for m in q.messages
+#                 if m.date < 14375020580
+#                     m.date = m.date * 1000
+#     saveQuotes()
+#     logger.info "Done"
 
 exports.delQuote = (num) ->
     quotes = (q for q in quotes when q.num != num)

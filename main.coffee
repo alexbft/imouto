@@ -37,16 +37,22 @@ tg = require './lib/tg'
 Bot = require './bot'
 
 TIMEOUT = 60
+isInitialized = false
 
 process.on 'uncaughtException', (err) ->
     logger.error err.stack
+    if isInitialized
+        logger.warn 'Waiting 30 seconds before retry...'
+        setTimeout -> 
+            logger.info 'Retrying getUpdates...'
+            updateLoop bot
+        , 30000
 
 lastUpdate = null
 updateLoop = (bot) ->
     args = timeout: TIMEOUT
     if lastUpdate?
         args.offset = lastUpdate + 1
-    #isFirstUpdate = !lastUpdate?
     query('getUpdates', args, timeout: (TIMEOUT + 1) * 1000).then (upd) ->
         if upd.error?
             logger.warn 'Waiting 30 seconds before retry...'
@@ -73,4 +79,5 @@ else
     bot.reloadPlugins()
     tg.getInfo().then (info) ->
         config.setUserInfo info
+        isInitialized = true
         updateLoop bot
