@@ -31,6 +31,8 @@ logger.add logger.transports.File,
         date = (new Date).toLocaleString()
         "[#{date}] [#{level}] #{message}"
 
+logger.level = 'debug'
+
 config = require './lib/config'
 query = require './lib/query'
 tg = require './lib/tg'
@@ -42,33 +44,39 @@ isInitialized = false
 process.on 'uncaughtException', (err) ->
     logger.error err.stack
     if isInitialized
-        logger.warn 'Waiting 30 seconds before retry...'
-        setTimeout -> 
-            logger.info 'Retrying getUpdates...'
-            updateLoop bot
-        , 30000
+        retryUpdateLoop()
+
+retryUpdateLoop = ->
+    logger.warn 'Waiting 30 seconds before retry...'
+    setTimeout -> 
+        logger.info 'Retrying getUpdates...'
+        updateLoop bot
+    , 30000
 
 lastUpdate = null
+isQuerying = false
 updateLoop = (bot) ->
     args = timeout: TIMEOUT
     if lastUpdate?
         args.offset = lastUpdate + 1
-    query('getUpdates', args, timeout: (TIMEOUT + 1) * 1000).then (upd) ->
-        if upd.error?
-            if !upd.error.startsWith 'Conflict'
-                logger.warn 'Waiting 30 seconds before retry...'
-                setTimeout -> 
-                    logger.info 'Retrying getUpdates...'
-                    updateLoop bot
-                , 30000
-        else
-            for u in upd
-                #console.log("Received update: " + JSON.stringify(u))
-                if not lastUpdate? or u.update_id > lastUpdate
-                    lastUpdate = u.update_id
-                if u.message?
-                    bot.onMessage u.message
-            updateLoop(bot)
+    if not isQuerying
+        isQuerying = true
+        query('getUpdates', args, timeout: (TIMEOUT + 1) * 1000).then (upd) ->
+            isQuerying = false
+            if upd.error?
+                retryUpdateLoop()
+            else
+                for u in upd
+                    #console.log("Received update: " + JSON.stringify(u))
+                    if not lastUpdate? or u.update_id > lastUpdate
+                        lastUpdate = u.update_id
+                    if u.message?
+                        bot.onMessage u.message
+                updateLoop(bot)
+        , (err) ->
+            logger.error err.stack
+            isQuerying = false
+            retryUpdateLoop()
 
 if not config.options.token
     logger.info("Please set up the configuration file (config/main.config)!")

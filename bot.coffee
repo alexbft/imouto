@@ -1,3 +1,5 @@
+#todo send image by id
+
 fs = require 'fs'
 logger = require 'winston'
 
@@ -113,6 +115,26 @@ module.exports = class Bot
                         contentType: 'audio/ogg'
                         filename: 'temp.ogg'
             tg.sendAudio args
+
+        msg.sendStickerFile = (fn, data, options = {}) ->
+            args =
+                chat_id: @chat.id
+                sticker:
+                    value: data
+                    options:
+                        contentType: 'image/webp'
+                        filename: misc.basename fn
+            if options.reply?
+                args.reply_to_message_id = options.reply
+            tg.sendSticker args, misc.basename fn
+
+        msg.sendStickerId = (fn, id, options = {}) ->
+            args =
+                chat_id: @chat.id
+                sticker: id
+            if options.reply?
+                args.reply_to_message_id = options.reply
+            tg.sendSticker args, misc.basename fn
 
         return
 

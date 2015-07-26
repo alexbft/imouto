@@ -166,6 +166,40 @@ module.exports = Bot = (function() {
       };
       return tg.sendAudio(args);
     };
+    msg.sendStickerFile = function(fn, data, options) {
+      var args;
+      if (options == null) {
+        options = {};
+      }
+      args = {
+        chat_id: this.chat.id,
+        sticker: {
+          value: data,
+          options: {
+            contentType: 'image/webp',
+            filename: misc.basename(fn)
+          }
+        }
+      };
+      if (options.reply != null) {
+        args.reply_to_message_id = options.reply;
+      }
+      return tg.sendSticker(args, misc.basename(fn));
+    };
+    msg.sendStickerId = function(fn, id, options) {
+      var args;
+      if (options == null) {
+        options = {};
+      }
+      args = {
+        chat_id: this.chat.id,
+        sticker: id
+      };
+      if (options.reply != null) {
+        args.reply_to_message_id = options.reply;
+      }
+      return tg.sendSticker(args, misc.basename(fn));
+    };
   };
 
   Bot.prototype.reloadPlugins = function() {

@@ -4,6 +4,7 @@ Entities = require('html-entities').AllHtmlEntities
 logger = require 'winston'
 config = require './config'
 fs = require 'fs'
+path = require 'path'
 
 pq = require './promise'
 
@@ -105,6 +106,9 @@ exports.tryParseInt = (s) ->
     else
         null
 
+exports.dataFn = (name) ->
+    path.resolve __dirname, '..', 'data', name
+
 exports.loadJson = (fileId) ->
     fn = __dirname + "/../data/#{fileId}.json"
     if fs.existsSync fn
@@ -117,3 +121,12 @@ exports.saveJson = (fileId, data) ->
     fn = __dirname + "/../data/#{fileId}.json"
     fs.writeFileSync fn, JSON.stringify(data), encoding: 'utf8'
     return
+
+exports.basename = (fn) ->
+    path.basename fn
+    # fn = fn.replace(/\\/g, '/')
+    # li = fn.lastIndexOf('/')
+    # if li == -1
+    #     fn
+    # else
+    #     fn.substr li + 1

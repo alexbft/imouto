@@ -29,3 +29,7 @@ exports.sendAudio = (args) ->
 exports.getInfo = ->
     logger.info "Getting user info..."
     query 'getMe'
+
+exports.sendSticker = (args, fn) ->
+    logger.outMsg "(#{args.chat_id}) <<< [Sticker: #{fn}]"
+    query 'sendSticker', args, multipart: true

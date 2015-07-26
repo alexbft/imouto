@@ -11,7 +11,7 @@ misc = require('../lib/misc');
 
 module.exports = {
   name: 'Quotes (get)',
-  pattern: /!(цитата|quote|удали|stats)(?:\s+(.+))?$/,
+  pattern: /!(q|цитата|quote|удали|stats)(?:\s+(.+))?$/,
   init: function() {
     return quotes.init();
   },
@@ -39,7 +39,7 @@ module.exports = {
       return;
     }
     if (msg.match[1].toLowerCase() === 'stats') {
-      msg.send(quotes.getStats());
+      msg.send(quotes.getStats(msg.match[2]));
       return;
     }
     quotes.updateUsers();

@@ -12,6 +12,7 @@ module.exports = class Plugin
         @warnPrivileged = true
         @isConf = false
         @isAcceptFwd = false
+        @sentFiles = misc.loadJson('sentFiles') ? {}
 
     fixPattern: (pat, onlyBeginning = false) ->
         src = pat.source
@@ -95,6 +96,27 @@ module.exports = class Plugin
                     df.reject err
         df.promise
 
+    sendStickerFromFile: (msg, fn, options) ->
+        #logger.debug "Sending sticker: #{fn}"
+        if fn not of @sentFiles
+            df = new pq.Deferred
+            fs.readFile fn, (err, data) =>
+                if errц
+                    df.reject err
+                else
+                    msg.sendStickerFile fn, data, options
+                    .then (res) =>
+                        @sentFiles[fn] = res.sticker.file_id
+                        misc.saveJson 'sentFiles', @sentFiles
+                        #logger.debug "Saved: #{fn} - #{res.sticker.file_id}"
+                        df.resolve res
+                    , (err) ->
+                        df.reject err
+            df.promise
+        else
+            logger.debug "Sent: #{fn} - #{@sentFiles[fn]}"
+            msg.sendStickerId fn, @sentFiles[fn], options
+    
     trigger: (msg, text) ->
         @bot.trigger msg, text
 

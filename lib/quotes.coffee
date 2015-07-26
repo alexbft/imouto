@@ -232,12 +232,17 @@ getAuthor = (q) ->
 
 MOON = String.fromCodePoint(0x1F31D)
 
-exports.getStats = ->
-    authors = {}
-    for q in quotes
-        a = getAuthor(q)
-        authors[a] = (authors[a] ? 0) + 1
-    authorTuples = ([k, v] for k, v of authors)
-    authorTuples.sort ([k1, v1], [k2, v2]) -> v2 - v1
-    authorScore = ("#{a} #{MOON} #{v} #{MOON}" for [a, v] in authorTuples.slice(0, 5))
-    "Всего цитат: #{quotes.length}\n\nTop 5 авторов:\n" + authorScore.join("\n")
+exports.getStats = (query) ->
+    if not query? or query.trim() == ''
+        authors = {}
+        for q in quotes
+            a = getAuthor(q)
+            authors[a] = (authors[a] ? 0) + 1
+        authorTuples = ([k, v] for k, v of authors)
+        authorTuples.sort ([k1, v1], [k2, v2]) -> v2 - v1
+        authorScore = ("#{a} #{MOON} #{v} #{MOON}" for [a, v] in authorTuples.slice(0, 5))
+        "Всего цитат: #{quotes.length}\n\nTop 5 авторов:\n" + authorScore.join("\n")
+    else
+        lookFor = query.toLowerCase()
+        qq = (q for q in quotes when hasText(q, lookFor))
+        "Цитат с упоминанием '#{query}': #{qq.length}"

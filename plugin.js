@@ -11,6 +11,7 @@ pq = require('./lib/promise');
 
 module.exports = Plugin = (function() {
   function Plugin(bot) {
+    var ref;
     this.bot = bot;
     this.pattern = null;
     this.name = null;
@@ -18,6 +19,7 @@ module.exports = Plugin = (function() {
     this.warnPrivileged = true;
     this.isConf = false;
     this.isAcceptFwd = false;
+    this.sentFiles = (ref = misc.loadJson('sentFiles')) != null ? ref : {};
   }
 
   Plugin.prototype.fixPattern = function(pat, onlyBeginning) {
@@ -129,6 +131,32 @@ module.exports = Plugin = (function() {
       }
     });
     return df.promise;
+  };
+
+  Plugin.prototype.sendStickerFromFile = function(msg, fn, options) {
+    var df;
+    if (!(fn in this.sentFiles)) {
+      df = new pq.Deferred;
+      fs.readFile(fn, (function(_this) {
+        return function(err, data) {
+          if (errц) {
+            return df.reject(err);
+          } else {
+            return msg.sendStickerFile(fn, data, options).then(function(res) {
+              _this.sentFiles[fn] = res.sticker.file_id;
+              misc.saveJson('sentFiles', _this.sentFiles);
+              return df.resolve(res);
+            }, function(err) {
+              return df.reject(err);
+            });
+          }
+        };
+      })(this));
+      return df.promise;
+    } else {
+      logger.debug("Sent: " + fn + " - " + this.sentFiles[fn]);
+      return msg.sendStickerId(fn, this.sentFiles[fn], options);
+    }
   };
 
   Plugin.prototype.trigger = function(msg, text) {
