@@ -71,9 +71,9 @@ module.exports = class Bot
         else if msg.video?
             buf.push "(video)"
         else if msg.contact?
-            buf.push "(contact: #{msg.first_name} #{msg.phone_number})"
+            buf.push "(contact: #{msg.contact.first_name} #{msg.contact.phone_number})"
         else if msg.location?
-            buf.push "(location: #{msg.longitute} #{msg.latitude})"
+            buf.push "(location: #{msg.location.longitute} #{msg.location.latitude})"
         else
             buf.push "(no text)"
         logger.inMsg buf.join(" ")

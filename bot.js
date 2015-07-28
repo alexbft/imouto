@@ -89,9 +89,9 @@ module.exports = Bot = (function() {
     } else if (msg.video != null) {
       buf.push("(video)");
     } else if (msg.contact != null) {
-      buf.push("(contact: " + msg.first_name + " " + msg.phone_number + ")");
+      buf.push("(contact: " + msg.contact.first_name + " " + msg.contact.phone_number + ")");
     } else if (msg.location != null) {
-      buf.push("(location: " + msg.longitute + " " + msg.latitude + ")");
+      buf.push("(location: " + msg.location.longitute + " " + msg.location.latitude + ")");
     } else {
       buf.push("(no text)");
     }
