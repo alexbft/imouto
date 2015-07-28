@@ -139,7 +139,7 @@ module.exports = Plugin = (function() {
       df = new pq.Deferred;
       fs.readFile(fn, (function(_this) {
         return function(err, data) {
-          if (errц) {
+          if (err) {
             return df.reject(err);
           } else {
             return msg.sendStickerFile(fn, data, options).then(function(res) {

@@ -101,7 +101,7 @@ module.exports = class Plugin
         if fn not of @sentFiles
             df = new pq.Deferred
             fs.readFile fn, (err, data) =>
-                if errц
+                if err
                     df.reject err
                 else
                     msg.sendStickerFile fn, data, options

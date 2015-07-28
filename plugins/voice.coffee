@@ -24,10 +24,16 @@ isRus = (c) ->
     c >= 'А' and c <= 'Я' or c >= 'а' and c <= 'я'
 
 googleTts = (txt, lang) ->
-    misc.getAsBrowser "http://translate.google.com/translate_tts",
+    #https://translate.google.com/translate_tts?ie=UTF-8&q=test&tl=en&total=1&idx=0&textlen=4&tk=285616&client=t&prev=input    
+    misc.getAsBrowser "https://translate.google.com/translate_tts",
         qs:
+            ie: 'UTF-8'
             tl: lang
             q: txt
+            total: 1
+            idx: 0
+            textlen: txt.length
+            client: 't'
         encoding: null
 
 convertMp3ToOpus = (mp3) ->
@@ -95,6 +101,7 @@ module.exports =
         logger.info "Voicing: #{txt}"
         safe googleTts txt, lang
         .then (mp3) =>
+            logger.debug "Got bytes: #{mp3.length}"
             safe convertMp3ToOpus mp3
             .then (opusFile) =>
                 msg.opusFile = opusFile

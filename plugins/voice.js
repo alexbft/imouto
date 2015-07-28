@@ -30,10 +30,15 @@ isRus = function(c) {
 };
 
 googleTts = function(txt, lang) {
-  return misc.getAsBrowser("http://translate.google.com/translate_tts", {
+  return misc.getAsBrowser("https://translate.google.com/translate_tts", {
     qs: {
+      ie: 'UTF-8',
       tl: lang,
-      q: txt
+      q: txt,
+      total: 1,
+      idx: 0,
+      textlen: txt.length,
+      client: 't'
     },
     encoding: null
   });
@@ -129,6 +134,7 @@ module.exports = {
     logger.info("Voicing: " + txt);
     return safe(googleTts(txt, lang)).then((function(_this) {
       return function(mp3) {
+        logger.debug("Got bytes: " + mp3.length);
         return safe(convertMp3ToOpus(mp3)).then(function(opusFile) {
           msg.opusFile = opusFile;
           return safe(_this.sendAudioFromFile(msg, opusFile.name)).then(function() {
