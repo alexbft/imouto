@@ -47,7 +47,7 @@ module.exports = {
     } else if (this.test(/\b(дура|дурак)\b/, txt)) {
       return "Я не дура!";
     } else if (this.test(/\bбака\b/, txt)) {
-      return "Я не bбака!";
+      return "Я не бака!";
     } else if (this.test(/\b(умная|умный)\b/, txt)) {
       return "Да, я умная " + String.fromCodePoint(0x1F467);
     } else if (this.test(/^\W*\b(сестричка|сестрёнка|сестренка|сестра|бот)\b\W*$/, txt)) {

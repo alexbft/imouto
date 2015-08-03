@@ -13,6 +13,7 @@ module.exports = {
   pattern: /!?(запомни|сохрани|запиши|save)\b/,
   isAcceptFwd: true,
   isPrivileged: true,
+  warnPrivileged: false,
   init: function() {
     quotes.init();
     this.timers = {};

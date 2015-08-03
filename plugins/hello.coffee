@@ -42,7 +42,7 @@ module.exports =
         else if @test /\b(дура|дурак)\b/, txt
             "Я не дура!"
         else if @test /\bбака\b/, txt
-            "Я не bбака!"
+            "Я не бака!"
         else if @test /\b(умная|умный)\b/, txt
             "Да, я умная " + String.fromCodePoint(0x1F467)
         else if @test /^\W*\b(сестричка|сестрёнка|сестренка|сестра|бот)\b\W*$/, txt

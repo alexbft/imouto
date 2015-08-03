@@ -80,39 +80,45 @@ lastUpdate = null;
 isQuerying = false;
 
 updateLoop = function(bot) {
-  var args;
-  args = {
-    timeout: TIMEOUT
-  };
-  if (lastUpdate != null) {
-    args.offset = lastUpdate + 1;
-  }
-  if (!isQuerying) {
-    isQuerying = true;
-    return query('getUpdates', args, {
-      timeout: (TIMEOUT + 1) * 1000
-    }).then(function(upd) {
-      var i, len, u;
-      isQuerying = false;
-      if (upd.error != null) {
-        return retryUpdateLoop();
-      } else {
-        for (i = 0, len = upd.length; i < len; i++) {
-          u = upd[i];
-          if ((lastUpdate == null) || u.update_id > lastUpdate) {
-            lastUpdate = u.update_id;
+  var args, e;
+  try {
+    args = {
+      timeout: TIMEOUT
+    };
+    if (lastUpdate != null) {
+      args.offset = lastUpdate + 1;
+    }
+    if (!isQuerying) {
+      isQuerying = true;
+      return query('getUpdates', args, {
+        timeout: (TIMEOUT + 1) * 1000
+      }).then(function(upd) {
+        var i, len, u;
+        isQuerying = false;
+        if (upd.error != null) {
+          return retryUpdateLoop();
+        } else {
+          for (i = 0, len = upd.length; i < len; i++) {
+            u = upd[i];
+            if ((lastUpdate == null) || u.update_id > lastUpdate) {
+              lastUpdate = u.update_id;
+            }
+            if (u.message != null) {
+              bot.onMessage(u.message);
+            }
           }
-          if (u.message != null) {
-            bot.onMessage(u.message);
-          }
+          return updateLoop(bot);
         }
-        return updateLoop(bot);
-      }
-    }, function(err) {
-      logger.error(err.stack);
-      isQuerying = false;
-      return retryUpdateLoop();
-    });
+      }, function(err) {
+        logger.error(err.stack);
+        isQuerying = false;
+        return retryUpdateLoop();
+      });
+    }
+  } catch (_error) {
+    e = _error;
+    isQuerying = false;
+    throw e;
   }
 };
 

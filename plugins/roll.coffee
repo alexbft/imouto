@@ -20,6 +20,9 @@ module.exports =
 
     rollDice: (msg, num, faces) ->
         if num? and num > 0 and faces? and faces > 0
+            if num > 100
+                msg.reply "Слишком много кубиков! У меня глаза разбегаются..."
+                return
             dices = (@rnd(1, faces) for i in [0...num])
             sum = 0
             for d in dices

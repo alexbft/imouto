@@ -27,6 +27,10 @@ module.exports = {
   rollDice: function(msg, num, faces) {
     var d, dices, i, j, len, sum, text;
     if ((num != null) && num > 0 && (faces != null) && faces > 0) {
+      if (num > 100) {
+        msg.reply("Слишком много кубиков! У меня глаза разбегаются...");
+        return;
+      }
       dices = (function() {
         var j, ref, results;
         results = [];
