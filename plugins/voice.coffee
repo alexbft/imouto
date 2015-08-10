@@ -61,6 +61,7 @@ convertMp3ToOpus = (mp3) ->
 
 module.exports =
     name: 'Voice tts'
+    isConf: true
     pattern: /!(голос|войс|voice|speak|ня|nya|desu|десу)( [a-z]{2})?(?: (.+))?$/
 
     onMsg: (msg, safe) ->

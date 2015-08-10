@@ -20,6 +20,8 @@ module.exports = class Bot
         @logMessage(msg)
         if !@isValidMsg msg
             return
+        if @isQuietMode() and !@isSudo(msg)
+            return
         @extendMsg msg
         if msg.from.id in @bannedIds or (not @isSudo(msg) and msg.chat.id in @bannedIds)
             return
@@ -37,7 +39,6 @@ module.exports = class Bot
                             msg.reply "Эта команда только для конференций. Извини!"
                         else
                             plugin._onMsg msg
-                    break
             catch e
                 logger.error e.stack
         return
@@ -87,6 +88,8 @@ module.exports = class Bot
                 args.reply_to_message_id = options.reply
             if options.preview?
                 args.disable_web_page_preview = !options.preview
+            if options.replyKeyboard?
+                args.reply_markup = options.replyKeyboard
             tg.sendMessage args
         msg.reply = (text, options = {}) ->
             options.reply = @message_id
@@ -100,11 +103,13 @@ module.exports = class Bot
             if options.caption?
                 args.caption = options.caption
             tg.sendPhoto args
-        msg.forward = (msg_id, from_chat_id) ->
+        msg.forward = (msg_id, from_chat_id, options = {}) ->
             args =
                 chat_id: @chat.id
                 from_chat_id: from_chat_id
                 message_id: msg_id
+            # if options.replyKeyboard?
+            #     args.reply_markup = options.replyKeyboard
             tg.forwardMessage args
         msg.sendAudio = (audio, options = {}) ->
             args =
@@ -168,6 +173,8 @@ module.exports = class Bot
         msg.from.id in @sudoList
 
     trigger: (msg, text) ->
+        if @isQuietMode() and !@isSudo(msg)
+            return
         for plugin in @plugins
             try
                 if plugin.matchPattern(msg, text)
@@ -178,3 +185,11 @@ module.exports = class Bot
                             plugin._onMsg msg
             catch e
                 logger.error e.stack
+
+    setQuietMode: (date) ->
+        logger.info "Quiet mode until #{new Date(date).toLocaleTimeString()}!"
+        @quietModeUntil = date
+
+    isQuietMode: ->
+        @quietModeUntil? and Date.now() < @quietModeUntil
+

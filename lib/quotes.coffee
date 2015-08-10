@@ -6,10 +6,15 @@ msgCache = require './msg_cache'
 
 exports.QUOTE_MERGE_TIMEOUT = QUOTE_MERGE_TIMEOUT = 200
 
+exports.THUMBS_UP = String.fromCodePoint(0x1f44d) + String.fromCodePoint(0x1f3fb)
+exports.THUMBS_DOWN = String.fromCodePoint(0x1f44e) + String.fromCodePoint(0x1f3fb)
+
 quotes = []
 initialized = false
 fn = null
 lastMsg = {}
+votes = {}
+lastQuote = {}
 
 exports.init = ->
     if not initialized
@@ -17,8 +22,22 @@ exports.init = ->
         if fs.existsSync fn
             content = fs.readFileSync fn
             quotes = JSON.parse content
+        loadVotes()
         initialized = true        
     return
+
+loadVotes = ->
+    votes = misc.loadJson('quote_votes') ? {}
+
+saveVotesTimer = null
+maybeSaveVotes = ->
+    if not saveVotesTimer?
+        saveVotesTimer = setTimeout saveVotes, 10000
+
+saveVotes = ->
+    saveVotesTimer = null
+    logger.debug 'Saving votes...'
+    misc.saveJson 'quote_votes', votes
 
 getNextNum = ->
     if quotes.length == 0
@@ -43,7 +62,7 @@ exports.add = (msg, posterId) ->
 
     quote =
         num: num
-        version: 4
+        version: 5
         posterId: posterId
         date: date
         messages: [fromMsg(msg)]
@@ -58,43 +77,70 @@ exports.add = (msg, posterId) ->
     # reply_chat_id: msg.reply_to_message?.chat.id
 
     ii = -1
-    # msgI = quote.messages.length - 1
+    # 
     # for q, i in quotes
-    #     isMatch = (
-    #         (not q.version? or (q.version == 2 and q.text != null)) and
-    #         ((q.text ? null) == (quote.messages[msgI].text ? null) and q.sender == quote.messages[msgI].sender or
-    #         (q.reply_text? and q.reply_text == quote.messages[0].text)))
     #     if isMatch
     #         ii = i
     #         break
 
     # if ii == -1
+
+    isComplex = false
+    if lastMsg[posterId]?.date? and date - lastMsg[posterId].date < QUOTE_MERGE_TIMEOUT
+        oldQuoteNum = lastMsg[posterId].quoteNum
+        oldQuoteIndex = -1
+        for q, i in quotes
+            if q.num == oldQuoteNum
+                oldQuote = q
+                oldQuoteIndex = i
+                break
+        if oldQuoteIndex != -1
+            quote.num = oldQuoteNum
+            quote.messages = oldQuote.messages.concat quote.messages
+            isComplex = true
+
+    msgI = quote.messages.length - 1
     for q, i in quotes
-        if q.version == 3
-            isMatch = true
-            for qmsg, j in q.messages
-                quotemsg = quote.messages[j]
-                if not (qmsg.text? and qmsg.text == quotemsg.text and qmsg.sender == quotemsg.sender)
-                    isMatch = false
-                    break
-            if isMatch 
-                if q.messages.length == quote.messages.length
-                    logger.info "Duplicate quote: #{q.num}"
-                    if q.posterId == posterId
-                        lastMsg[posterId] =
-                            date: quote.date
-                            quoteNum: q.num
-                    return q.num
+        if not q.version? or q.version < 3
+            if q.reply_text?
+                isMatch = quote.messages.length == 2 and q.sender == quote.messages[1].sender and (q.text ? null) == (quote.messages[1].text ? null) and (q.reply_text ? null) == (quote.messages[0].text ? null)
+            else
+                isMatch = quote.messages.length == 1 and q.sender == quote.messages[0].sender and (q.text ? null) == (quote.messages[0].text ? null)
+        else
+            isMatch = q.messages.length == quote.messages.length
+            if isMatch
+                for qmsg, j in q.messages
+                    quotemsg = quote.messages[j]
+                    if not ((q.version < 5 or qmsg.text?) and qmsg.text == quotemsg.text and qmsg.sender == quotemsg.sender)
+                        isMatch = false
+                        break
+        if isMatch 
+            logger.info "Duplicate quote: #{q.num}"
+            if q.version == 5
+                if q.posterId == posterId
+                    lastMsg[posterId] =
+                        date: quote.date
+                        quoteNum: q.num
+                return q.num
+            else
+                ii = i
+                break
 
     if ii != -1
         quote.num = quotes[ii].num
+        if quotes[ii].saved_name?
+            for mm in quote.messages
+                mm.saved_name = quotes[ii].saved_name
+        if quotes[ii].messages?
+            for msgI in [0...quotes[ii].messages.length]
+                if quotes[ii].messages[msgI].saved_name?
+                    quote.messages[msgI].saved_name = quotes[ii].messages[msgI].saved_name
         quotes[ii] = quote
+        if isComplex and quotes.length - oldQuoteIndex <= 2
+            quotes = (q for q in quotes when q.num != oldQuoteNum)
     else
-        if lastMsg[posterId]?.date? and date - lastMsg[posterId].date < QUOTE_MERGE_TIMEOUT
-            newQ = quote
-            quote = getByNumber(lastMsg[posterId].quoteNum)
-            quote.date = newQ.date
-            quote.messages = quote.messages.concat(newQ.messages)
+        if isComplex
+            quotes[oldQuoteIndex] = quote
         else
             quotes.push(quote)
     lastMsg[posterId] =
@@ -241,8 +287,41 @@ exports.getStats = (query) ->
         authorTuples = ([k, v] for k, v of authors)
         authorTuples.sort ([k1, v1], [k2, v2]) -> v2 - v1
         authorScore = ("#{a} #{MOON} #{v} #{MOON}" for [a, v] in authorTuples.slice(0, 5))
-        "Всего цитат: #{quotes.length}\n\nTop 5 авторов:\n" + authorScore.join("\n")
+        "Всего цитат: #{quotes.length}\nПоследняя цитата: #{getNextNum() - 1}\n\nTop 5 авторов:\n" + authorScore.join("\n")
     else
         lookFor = query.toLowerCase()
         qq = (q for q in quotes when hasText(q, lookFor))
         "Цитат с упоминанием '#{query}': #{qq.length}"
+
+exports.setLastQuote = (chatId, quoteNum) ->
+    lastQuote[chatId] =
+        num: quoteNum
+        date: Date.now()
+    return
+
+exports.vote = (num, chatId, userId, isUp) ->
+    lastQuoteTime = lastQuote[chatId]?.date
+    if num?
+        if not getByNumber(num)?
+            return null
+    else
+        num = lastQuote[chatId]?.num
+    if lastQuoteTime? and Date.now() - lastQuoteTime < 1000 * 60 * 5
+        points = if isUp then 1 else -1
+        logger.info "User #{userId} voted #{points} for quote ##{num}."
+        votes[num] ?= {}
+        if votes[num][userId] != points
+            votes[num][userId] = points
+            maybeSaveVotes()
+            num
+        else
+            null
+    else
+        null
+
+exports.getRating = (quoteNum) ->
+    rating = 0
+    if votes[quoteNum]?
+        for k, v of votes[quoteNum]
+            rating += v
+    rating

@@ -16,7 +16,7 @@ module.exports = {
     return quotes.init();
   },
   onMsg: function(msg) {
-    var hdr, num, ownerId, quote, reply, savedName, txt;
+    var hdr, num, ownerId, quote, rating, ratingStr, reply, savedName, txt;
     if (msg.match[1].toLowerCase() === 'удали') {
       if (!this.checkSudo(msg)) {
         return;
@@ -91,19 +91,22 @@ module.exports = {
       if ((savedName != null) && savedName !== "") {
         hdr += " (" + savedName + ")";
       }
-      return msg.send(hdr).then(function() {
-        var buf, fwdFunc, replyP;
-        if (quote.version != null) {
-          if (quote.version === 2) {
-            if (quote.reply_id != null) {
-              replyP = msg.forward(quote.reply_id, quote.reply_chat_id);
-            } else {
-              replyP = pq.resolved();
-            }
-            return replyP.then(function() {
-              return msg.forward(quote.id, quote.chat_id);
-            });
-          } else if (quote.version >= 3) {
+      if (quote.version < 5) {
+        hdr += " (архив)";
+      }
+      rating = quotes.getRating(quote.num);
+      if (rating > 0) {
+        ratingStr = "+" + rating;
+      } else {
+        ratingStr = "" + rating;
+      }
+      hdr += " [ " + ratingStr + " ]";
+      hdr += " " + quotes.THUMBS_UP + " /LOYS_" + quote.num + " " + quotes.THUMBS_DOWN + " /FUUU_" + quote.num;
+      quotes.setLastQuote(msg.chat.id, quote.num);
+      return msg.send(hdr).then((function(_this) {
+        return function() {
+          var buf, fwdFunc;
+          if (quote.version >= 5) {
             fwdFunc = function(msgIndex) {
               if (msgIndex < quote.messages.length) {
                 return msg.forward(quote.messages[msgIndex].id, quote.messages[msgIndex].chat_id).then(function() {
@@ -112,16 +115,35 @@ module.exports = {
               }
             };
             return fwdFunc(0);
+          } else {
+            if (quote.version >= 3) {
+              fwdFunc = function(msgIndex) {
+                var buf, message;
+                if (msgIndex < quote.messages.length) {
+                  message = quote.messages[msgIndex];
+                  buf = "<" + (message.sender_name.replace('_', ' ')) + ">\n\n";
+                  if (message.text != null) {
+                    buf += message.text;
+                    return msg.send(buf).then(function() {
+                      return fwdFunc(msgIndex + 1);
+                    });
+                  } else {
+                    return fwdFunc(msgIndex + 1);
+                  }
+                }
+              };
+              return fwdFunc(0);
+            } else {
+              buf = "<" + (quote.sender_name.replace('_', ' ')) + ">\n\n";
+              if (quote.reply_text != null) {
+                buf += '> ' + quote.reply_text.replace(/\n/g, '\n> ') + "\n";
+              }
+              buf += quote.text;
+              return msg.send(buf);
+            }
           }
-        } else {
-          buf = (quote.sender_name.replace('_', ' ')) + ":\n\n";
-          if (quote.reply_text != null) {
-            buf += '> ' + quote.reply_text.replace(/\n/g, '\n> ') + "\n";
-          }
-          buf += quote.text;
-          return msg.send(buf);
-        }
-      });
+        };
+      })(this));
     } else {
       return msg.reply('Цитата не найдена :(');
     }

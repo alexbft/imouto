@@ -61,8 +61,11 @@ TIMEOUT = 60;
 isInitialized = false;
 
 process.on('uncaughtException', function(err) {
+  var isQuerying;
+  logger.debug('uncaughtException');
   logger.error(err.stack);
   if (isInitialized) {
+    isQuerying = false;
     return retryUpdateLoop();
   }
 });
@@ -96,6 +99,7 @@ updateLoop = function(bot) {
         var i, len, u;
         isQuerying = false;
         if (upd.error != null) {
+          logger.debug('json error');
           return retryUpdateLoop();
         } else {
           for (i = 0, len = upd.length; i < len; i++) {
@@ -110,6 +114,7 @@ updateLoop = function(bot) {
           return updateLoop(bot);
         }
       }, function(err) {
+        logger.debug('err');
         logger.error(err.stack);
         isQuerying = false;
         return retryUpdateLoop();

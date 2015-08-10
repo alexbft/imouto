@@ -79,6 +79,7 @@ convertMp3ToOpus = function(mp3) {
 
 module.exports = {
   name: 'Voice tts',
+  isConf: true,
   pattern: /!(голос|войс|voice|speak|ня|nya|desu|десу)( [a-z]{2})?(?: (.+))?$/,
   onMsg: function(msg, safe) {
     var chars, lang, nya, ref, txt;

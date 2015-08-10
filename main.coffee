@@ -42,8 +42,10 @@ TIMEOUT = 60
 isInitialized = false
 
 process.on 'uncaughtException', (err) ->
+    logger.debug 'uncaughtException'
     logger.error err.stack
     if isInitialized
+        isQuerying = false
         retryUpdateLoop()
 
 retryUpdateLoop = ->
@@ -65,6 +67,7 @@ updateLoop = (bot) ->
             query('getUpdates', args, timeout: (TIMEOUT + 1) * 1000).then (upd) ->
                 isQuerying = false
                 if upd.error?
+                    logger.debug 'json error'
                     retryUpdateLoop()
                 else
                     for u in upd
@@ -75,6 +78,7 @@ updateLoop = (bot) ->
                             bot.onMessage u.message
                     updateLoop(bot)
             , (err) ->
+                logger.debug 'err'
                 logger.error err.stack
                 isQuerying = false
                 retryUpdateLoop()

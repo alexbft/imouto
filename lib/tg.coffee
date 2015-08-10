@@ -5,6 +5,9 @@ query = require './query'
 
 exports.sendMessage = (args) ->
     logger.outMsg "(#{args.chat_id}) <<< #{args.text}"
+    if args.reply_markup?
+        #logger.debug "Keyboard: #{JSON.stringify args.reply_markup}"
+        args.reply_markup = JSON.stringify args.reply_markup
     query 'sendMessage', args
 
 exports.sendPhoto = (args) ->

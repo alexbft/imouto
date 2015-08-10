@@ -29,6 +29,9 @@ module.exports = Bot = (function() {
     if (!this.isValidMsg(msg)) {
       return;
     }
+    if (this.isQuietMode() && !this.isSudo(msg)) {
+      return;
+    }
     this.extendMsg(msg);
     if ((ref = msg.from.id, indexOf.call(this.bannedIds, ref) >= 0) || (!this.isSudo(msg) && (ref1 = msg.chat.id, indexOf.call(this.bannedIds, ref1) >= 0))) {
       return;
@@ -48,7 +51,6 @@ module.exports = Bot = (function() {
               plugin._onMsg(msg);
             }
           }
-          break;
         }
       } catch (_error) {
         e = _error;
@@ -114,6 +116,9 @@ module.exports = Bot = (function() {
       if (options.preview != null) {
         args.disable_web_page_preview = !options.preview;
       }
+      if (options.replyKeyboard != null) {
+        args.reply_markup = options.replyKeyboard;
+      }
       return tg.sendMessage(args);
     };
     msg.reply = function(text, options) {
@@ -140,8 +145,11 @@ module.exports = Bot = (function() {
       }
       return tg.sendPhoto(args);
     };
-    msg.forward = function(msg_id, from_chat_id) {
+    msg.forward = function(msg_id, from_chat_id, options) {
       var args;
+      if (options == null) {
+        options = {};
+      }
       args = {
         chat_id: this.chat.id,
         from_chat_id: from_chat_id,
@@ -246,6 +254,9 @@ module.exports = Bot = (function() {
 
   Bot.prototype.trigger = function(msg, text) {
     var e, i, len, plugin, ref, results;
+    if (this.isQuietMode() && !this.isSudo(msg)) {
+      return;
+    }
     ref = this.plugins;
     results = [];
     for (i = 0, len = ref.length; i < len; i++) {
@@ -270,6 +281,15 @@ module.exports = Bot = (function() {
       }
     }
     return results;
+  };
+
+  Bot.prototype.setQuietMode = function(date) {
+    logger.info("Quiet mode until " + (new Date(date).toLocaleTimeString()) + "!");
+    return this.quietModeUntil = date;
+  };
+
+  Bot.prototype.isQuietMode = function() {
+    return (this.quietModeUntil != null) && Date.now() < this.quietModeUntil;
   };
 
   return Bot;

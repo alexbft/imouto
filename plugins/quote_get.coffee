@@ -9,6 +9,10 @@ module.exports =
 
     init: ->
         quotes.init()
+        # @vote =
+        #     keyboard: [[quotes.THUMBS_UP, quotes.THUMBS_DOWN]]
+        #     resize_keyboard: true
+        #     one_time_keyboard: true
 
     onMsg: (msg) ->
         if msg.match[1].toLowerCase() == 'удали'
@@ -64,27 +68,42 @@ module.exports =
             else
                 savedName = quote.messages.map((mm) -> mm.saved_name).filter((n) -> n?).join(", ")
             if savedName? and savedName != ""
-                hdr += " (#{savedName})" 
-            msg.send(hdr).then ->
-                if quote.version? 
-                    if quote.version == 2
-                        if quote.reply_id?
-                            replyP = msg.forward(quote.reply_id, quote.reply_chat_id)
-                        else
-                            replyP = pq.resolved()
-                        replyP.then ->
-                            msg.forward(quote.id, quote.chat_id)
-                    else if quote.version >= 3
-                        fwdFunc = (msgIndex) ->
+                hdr += " (#{savedName})"
+            if quote.version < 5
+                hdr += " (архив)"
+            rating = quotes.getRating(quote.num)
+            if rating > 0
+                ratingStr = "+#{rating}"
+            else
+                ratingStr = "#{rating}"
+            hdr += " [ #{ratingStr} ]"
+            hdr += " #{quotes.THUMBS_UP} /LOYS_#{quote.num} #{quotes.THUMBS_DOWN} /FUUU_#{quote.num}"
+            quotes.setLastQuote(msg.chat.id, quote.num)
+            msg.send(hdr).then =>
+                if quote.version >= 5
+                    fwdFunc = (msgIndex) =>
+                        if msgIndex < quote.messages.length
+                            msg.forward(quote.messages[msgIndex].id, quote.messages[msgIndex].chat_id).then ->
+                                fwdFunc(msgIndex + 1)
+                    fwdFunc(0)
+                else
+                    if quote.version >= 3
+                        fwdFunc = (msgIndex) =>
                             if msgIndex < quote.messages.length
-                                msg.forward(quote.messages[msgIndex].id, quote.messages[msgIndex].chat_id).then ->
+                                message = quote.messages[msgIndex]
+                                buf = "<#{message.sender_name.replace('_', ' ')}>\n\n"
+                                if message.text?
+                                    buf += message.text
+                                    msg.send(buf).then ->
+                                        fwdFunc(msgIndex + 1)
+                                else
                                     fwdFunc(msgIndex + 1)
                         fwdFunc(0)
-                else
-                    buf = "#{quote.sender_name.replace('_', ' ')}:\n\n"
-                    if quote.reply_text?
-                        buf += '> ' + quote.reply_text.replace(/\n/g, '\n> ') + "\n"
-                    buf += quote.text
-                    msg.send(buf)
+                    else
+                        buf = "<#{quote.sender_name.replace('_', ' ')}>\n\n"
+                        if quote.reply_text?
+                            buf += '> ' + quote.reply_text.replace(/\n/g, '\n> ') + "\n"
+                        buf += quote.text
+                        msg.send(buf)
         else
             msg.reply('Цитата не найдена :(')
