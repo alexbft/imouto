@@ -40,23 +40,24 @@ Bot = require './bot'
 
 TIMEOUT = 60
 isInitialized = false
+isQuerying = false
 
 process.on 'uncaughtException', (err) ->
     logger.debug 'uncaughtException'
     logger.error err.stack
     if isInitialized
-        isQuerying = false
-        retryUpdateLoop()
+        retryUpdateLoop(true)
 
-retryUpdateLoop = ->
+retryUpdateLoop = (force) ->
     logger.warn 'Waiting 30 seconds before retry...'
     setTimeout -> 
         logger.info 'Retrying getUpdates...'
+        if force
+            isQuerying = false
         updateLoop bot
     , 30000
 
 lastUpdate = null
-isQuerying = false
 updateLoop = (bot) ->
     try
         args = timeout: TIMEOUT

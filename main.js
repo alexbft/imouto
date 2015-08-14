@@ -60,27 +60,28 @@ TIMEOUT = 60;
 
 isInitialized = false;
 
+isQuerying = false;
+
 process.on('uncaughtException', function(err) {
-  var isQuerying;
   logger.debug('uncaughtException');
   logger.error(err.stack);
   if (isInitialized) {
-    isQuerying = false;
-    return retryUpdateLoop();
+    return retryUpdateLoop(true);
   }
 });
 
-retryUpdateLoop = function() {
+retryUpdateLoop = function(force) {
   logger.warn('Waiting 30 seconds before retry...');
   return setTimeout(function() {
     logger.info('Retrying getUpdates...');
+    if (force) {
+      isQuerying = false;
+    }
     return updateLoop(bot);
   }, 30000);
 };
 
 lastUpdate = null;
-
-isQuerying = false;
 
 updateLoop = function(bot) {
   var args, e;

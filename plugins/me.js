@@ -5,7 +5,7 @@ query = require('../lib/query');
 
 module.exports = {
   name: 'Debug',
-  pattern: /!(getme|import-names)$/,
+  pattern: /!(getme|import-names|nokey)$/,
   isPrivileged: true,
   onMsg: function(msg) {
     var quotes;
@@ -17,6 +17,12 @@ module.exports = {
       quotes = require('../lib/quotes');
       quotes.init();
       return quotes.importSavedNames();
+    } else if (msg.match[1] === 'nokey') {
+      return msg.send('Убираю клавиатуру', {
+        replyKeyboard: {
+          hide_keyboard: true
+        }
+      });
     } else {
       return logger.info("Unknown debug: " + msg.match[1]);
     }

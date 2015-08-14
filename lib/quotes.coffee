@@ -300,22 +300,21 @@ exports.setLastQuote = (chatId, quoteNum) ->
     return
 
 exports.vote = (num, chatId, userId, isUp) ->
-    lastQuoteTime = lastQuote[chatId]?.date
     if num?
         if not getByNumber(num)?
             return null
     else
         num = lastQuote[chatId]?.num
-    if lastQuoteTime? and Date.now() - lastQuoteTime < 1000 * 60 * 5
-        points = if isUp then 1 else -1
-        logger.info "User #{userId} voted #{points} for quote ##{num}."
-        votes[num] ?= {}
-        if votes[num][userId] != points
-            votes[num][userId] = points
-            maybeSaveVotes()
-            num
-        else
-            null
+        lastQuoteTime = lastQuote[chatId]?.date
+        if not (lastQuoteTime? and Date.now() - lastQuoteTime < 1000 * 60 * 5)
+            return null
+    points = if isUp then 1 else -1
+    logger.info "User #{userId} voted #{points} for quote ##{num}."
+    votes[num] ?= {}
+    if votes[num][userId] != points
+        votes[num][userId] = points
+        maybeSaveVotes()
+        num
     else
         null
 

@@ -2,7 +2,7 @@ query = require '../lib/query'
 
 module.exports =
     name: 'Debug'
-    pattern: /!(getme|import-names)$/
+    pattern: /!(getme|import-names|nokey)$/
     isPrivileged: true
 
     onMsg: (msg) ->
@@ -13,5 +13,7 @@ module.exports =
             quotes = require '../lib/quotes'
             quotes.init()
             quotes.importSavedNames()
+        else if msg.match[1] == 'nokey'
+            msg.send('Убираю клавиатуру', replyKeyboard: hide_keyboard: true)
         else
             logger.info "Unknown debug: #{msg.match[1]}"
