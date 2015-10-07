@@ -174,6 +174,23 @@ module.exports = Bot = (function() {
       };
       return tg.sendAudio(args);
     };
+    msg.sendVoice = function(audio, options) {
+      var args;
+      if (options == null) {
+        options = {};
+      }
+      args = {
+        chat_id: this.chat.id,
+        voice: {
+          value: audio,
+          options: {
+            contentType: 'audio/ogg',
+            filename: 'temp.ogg'
+          }
+        }
+      };
+      return tg.sendVoice(args);
+    };
     msg.sendStickerFile = function(fn, data, options) {
       var args;
       if (options == null) {

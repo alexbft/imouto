@@ -28,7 +28,7 @@ search = function(txt, rsz) {
 
 module.exports = {
   name: 'Images',
-  pattern: /!(покажи|пик|img) (.+)/,
+  pattern: /!(покажи|пик|img|pic) (.+)/,
   isConf: true,
   onMsg: function(msg, safe) {
     var key, res, txt;

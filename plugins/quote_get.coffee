@@ -77,7 +77,7 @@ module.exports =
             else
                 ratingStr = "#{rating}"
             hdr += " [ #{ratingStr} ]"
-            hdr += " #{quotes.THUMBS_UP} /LOYS_#{quote.num} #{quotes.THUMBS_DOWN} /FUUU_#{quote.num}"
+            hdr += " #{quotes.THUMBS_UP} /palec_VEPH_#{quote.num} #{quotes.THUMBS_DOWN} /palec_HU3_#{quote.num}"
             quotes.setLastQuote(msg.chat.id, quote.num)
             msg.send(hdr).then =>
                 if quote.version >= 5

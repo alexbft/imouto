@@ -29,6 +29,8 @@ module.exports = {
     you = msg.from.first_name;
     if (this.test(/\b(привет|прив\b)/, txt) && !this.test(/\bбот\b/, txt)) {
       return "Привет, " + you + "!";
+    } else if (this.test(/как дела.*\?$/, txt)) {
+      return misc.randomChoice(['Хорошо!', 'Хорошо!', 'Плохо!', 'Плохо!', 'Как всегда.', 'А у тебя?', 'Чем занимаешься?', 'Я креветко', 'Истинно познавшие дзен не используют оценочных суждений.']);
     } else if (this.test(/\b(пока|бб)\b/, txt)) {
       return "Пока-пока, " + you + "!";
     } else if (this.test(/\b(спасибо|спс)\b/, txt)) {

@@ -80,7 +80,7 @@ convertMp3ToOpus = function(mp3) {
 module.exports = {
   name: 'Voice tts',
   isConf: true,
-  pattern: /!(голос|войс|voice|speak|ня|nya|desu|десу)( [a-z]{2})?(?: (.+))?$/,
+  pattern: /!(голос|войс|voice|speak|v|tts|ня|nya|desu|десу)( [a-z]{2})?(?: (.+))?$/,
   onMsg: function(msg, safe) {
     var chars, lang, nya, ref, txt;
     txt = msg.match[3];
@@ -138,7 +138,7 @@ module.exports = {
         logger.debug("Got bytes: " + mp3.length);
         return safe(convertMp3ToOpus(mp3)).then(function(opusFile) {
           msg.opusFile = opusFile;
-          return safe(_this.sendAudioFromFile(msg, opusFile.name)).then(function() {
+          return safe(_this.sendVoiceFromFile(msg, opusFile.name)).then(function() {
             logger.info("Done sending, removing temp file...");
             return opusFile.removeCallback();
           });

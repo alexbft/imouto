@@ -96,6 +96,19 @@ module.exports = class Plugin
                     df.reject err
         df.promise
 
+    sendVoiceFromFile: (msg, fn, options) ->
+        df = new pq.Deferred
+        fs.readFile fn, (err, data) ->
+            if err
+                df.reject err
+            else
+                msg.sendVoice data, options
+                .then (res) ->
+                    df.resolve res
+                , (err) ->
+                    df.reject err
+        df.promise        
+
     sendStickerFromFile: (msg, fn, options) ->
         #logger.debug "Sending sticker: #{fn}"
         if fn not of @sentFiles

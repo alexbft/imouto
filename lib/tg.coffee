@@ -29,6 +29,10 @@ exports.sendAudio = (args) ->
     logger.outMsg "(#{args.chat_id}) <<< [Audio (#{args.audio.value?.length} bytes)]"
     query 'sendAudio', args, multipart: true
 
+exports.sendVoice = (args) ->
+    logger.outMsg "(#{args.chat_id}) <<< [Voice (#{args.voice.value?.length} bytes)]"
+    query 'sendVoice', args, multipart: true    
+
 exports.getInfo = ->
     logger.info "Getting user info..."
     query 'getMe'

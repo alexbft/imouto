@@ -121,6 +121,16 @@ module.exports = class Bot
                         filename: 'temp.ogg'
             tg.sendAudio args
 
+        msg.sendVoice = (audio, options = {}) ->
+            args =
+                chat_id: @chat.id
+                voice:
+                    value: audio
+                    options:
+                        contentType: 'audio/ogg'
+                        filename: 'temp.ogg'
+            tg.sendVoice args            
+
         msg.sendStickerFile = (fn, data, options = {}) ->
             args =
                 chat_id: @chat.id

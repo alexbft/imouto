@@ -133,6 +133,23 @@ module.exports = Plugin = (function() {
     return df.promise;
   };
 
+  Plugin.prototype.sendVoiceFromFile = function(msg, fn, options) {
+    var df;
+    df = new pq.Deferred;
+    fs.readFile(fn, function(err, data) {
+      if (err) {
+        return df.reject(err);
+      } else {
+        return msg.sendVoice(data, options).then(function(res) {
+          return df.resolve(res);
+        }, function(err) {
+          return df.reject(err);
+        });
+      }
+    });
+    return df.promise;
+  };
+
   Plugin.prototype.sendStickerFromFile = function(msg, fn, options) {
     var df;
     if (!(fn in this.sentFiles)) {

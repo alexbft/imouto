@@ -36,7 +36,7 @@ module.exports =
         if @timers[posterId]?
             clearTimeout(@timers[posterId])
         @timers[posterId] = setTimeout =>
-            msg.reply("Запомнила под номером #{num}.")
+            msg.send("Запомнила под номером #{num}.", reply: quoteMsg.message_id)
             @timers[posterId] = null
         , quotes.QUOTE_MERGE_TIMEOUT
 

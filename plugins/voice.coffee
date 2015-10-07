@@ -62,7 +62,7 @@ convertMp3ToOpus = (mp3) ->
 module.exports =
     name: 'Voice tts'
     isConf: true
-    pattern: /!(голос|войс|voice|speak|ня|nya|desu|десу)( [a-z]{2})?(?: (.+))?$/
+    pattern: /!(голос|войс|voice|speak|v|tts|ня|nya|desu|десу)( [a-z]{2})?(?: (.+))?$/
 
     onMsg: (msg, safe) ->
         txt = msg.match[3]
@@ -106,7 +106,7 @@ module.exports =
             safe convertMp3ToOpus mp3
             .then (opusFile) =>
                 msg.opusFile = opusFile
-                safe @sendAudioFromFile msg, opusFile.name
+                safe @sendVoiceFromFile msg, opusFile.name
                 .then ->
                     logger.info "Done sending, removing temp file..."
                     opusFile.removeCallback()

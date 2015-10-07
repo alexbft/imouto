@@ -7,13 +7,13 @@ tg = require '../lib/tg'
 
 module.exports =
     name: 'Quotes (vote)'
-    pattern: /\/(LOYS|FUUU|ЛОЙС|ФУУУ|лайк|дизлайк|like|dislike)(?:(?:_|\s+)(\d+))?/
+    pattern: /\/(LOYS|FUUU|ЛОЙС|ФУУУ|лайк|дизлайк|like|dislike|palec_VEPH|palec_HU3)(?:(?:_|\s+)(\d+))?/
 
     init: ->
         quotes.init()
 
     onMsg: (msg) ->
-        isThumbsUp = msg.match[1].toLowerCase() in ["loys", "лойс", "лайк", "like"]
+        isThumbsUp = msg.match[1].toLowerCase() in ["loys", "лойс", "лайк", "like", "palec_veph"]
         num = misc.tryParseInt(msg.match[2])
         num = quotes.vote(num, msg.chat.id, msg.from.id, isThumbsUp)
         if num?

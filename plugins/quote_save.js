@@ -46,7 +46,9 @@ module.exports = {
     }
     return this.timers[posterId] = setTimeout((function(_this) {
       return function() {
-        msg.reply("Запомнила под номером " + num + ".");
+        msg.send("Запомнила под номером " + num + ".", {
+          reply: quoteMsg.message_id
+        });
         return _this.timers[posterId] = null;
       };
     })(this), quotes.QUOTE_MERGE_TIMEOUT);
