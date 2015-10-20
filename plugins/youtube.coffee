@@ -31,7 +31,7 @@ module.exports =
             logger.info "Repeated: #{key}"
             res = search(txt, 8)
         safe(res).then (results) =>
-            if results.length == 0
+            if results?.length == 0
                 msg.reply("Ничего не найдено!")
             else
                 result = misc.randomChoice results

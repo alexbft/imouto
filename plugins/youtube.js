@@ -45,7 +45,7 @@ module.exports = {
     return safe(res).then((function(_this) {
       return function(results) {
         var result, url;
-        if (results.length === 0) {
+        if ((results != null ? results.length : void 0) === 0) {
           return msg.reply("Ничего не найдено!");
         } else {
           result = misc.randomChoice(results);
