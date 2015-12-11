@@ -22,12 +22,17 @@ newStats = (userId) ->
     tyan: false
     moments: []
     status: randomHikka()
+
+removeOldMoments = (stats, now) ->
+    stats.moments = (m for m in stats.moments when now - m < MAX_PERIOD)
     
 addMoment = (stats, now) ->
-    stats.moments = (m for m in stats.moments when now - m < MAX_PERIOD)
+    removeOldMoments stats, now
     stats.moments.push(now)
     
-calculateBhLevel = (moments, now) ->
+calculateBhLevel = (userId, moments, now) ->
+    if userId in [89014714]  #алексей
+        return 5
     prev = 0
     peaks = []
     for m in moments
@@ -46,7 +51,7 @@ calculateBhLevel = (moments, now) ->
             peaks.length - 1 + peaks[peaks.length - 1]
         
 bhToString = (bh) ->
-    switch Math.ceil bh/2
+    switch bh
         when 0
             icon: smiles.sunglasses
             text: misc.randomChoice ['спокойствие', 'нирвана', 'будда', 'нулевой']
@@ -68,7 +73,7 @@ bhToString = (bh) ->
 
 module.exports =
     name: 'Bugurt'
-    pattern: /!(bh|статус|тян|бугурт|багор|багет|бомбит|багратион|бамболейло|батруха|баттхерт|бантустан|бранденбург|будапешт|будда|баргест|блюменталь|бакенбард|боль|бубалех|печет|печёт|припекло|пиздец|бля|сука|спок)(.*)/
+    pattern: /!(bh|статус|тян|бугурт|багор|багет|бомбит|багратион|бамболейло|батруха|баттхерт|бантустан|бранденбург|будапешт|будда|баргест|блюменталь|бакенбард|боль|бубалех|печет|печёт|припекло|пиздец|бля|сука|спок|горит|жжет|жжёт|пригорело|ору|f+u+)(.*)/
     
     init: ->
         @stats = misc.loadJson('bh_stats') ? {}
@@ -83,12 +88,12 @@ module.exports =
         if msg.match[1].toLowerCase() == 'тян' and stats.tyan
             @report msg, stats, 0
         else
+            now = Date.now()
             if msg.match[1].toLowerCase() in ['спок', 'будда']
                 stats.moments = []
             else
-                now = Date.now()
                 addMoment(stats, now)
-            bhLevel = calculateBhLevel stats.moments, now
+            bhLevel = calculateBhLevel userId, stats.moments, now
             @report msg, stats, bhLevel
             misc.saveJson 'bh_stats', @stats
             
@@ -116,14 +121,7 @@ module.exports =
             msg.reply 'Ваш статус обновлён.'
             misc.saveJson 'bh_stats', @stats
         else
-            bhLevel = calculateBhLevel stats.moments, Date.now()
+            now = Date.now()
+            removeOldMoments stats, now
+            bhLevel = calculateBhLevel userId, stats.moments, now
             @report msg, stats, bhLevel
-            
-        
-        
-            
-     
-            
-            
-        
-        

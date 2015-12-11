@@ -3,5 +3,6 @@ logs/*.log
 data/*.txt
 data/*.bak
 data/*.json
+data/*.html
 plugins/_*.*
 node_modules

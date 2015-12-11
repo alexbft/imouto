@@ -1,19 +1,25 @@
+logger = require 'winston'
+
 misc = require '../lib/misc'
 
 translate = (src, dest, txt) ->
     misc.getAsBrowser "http://translate.google.com/translate_a/single",
         qs:
-            client: 't'
+            client: 'your_mom'
             ie: 'UTF-8'
             oe: 'UTF-8'
             dt: 't'
             sl: src
             tl: dest
-            text: txt
+            q: txt
     .then (res) ->
-        evalFn = new Function "return " + res
-        json = evalFn()
-        (d[0] for d in json[0]).join("")
+        try
+            evalFn = new Function "return " + res
+            json = evalFn()
+            (d[0] for d in json[0]).join("")
+        catch ex
+            logger.debug res
+            null
 
 module.exports =
     name: 'Translate'
@@ -22,7 +28,7 @@ module.exports =
     onMsg: (msg, safe) ->
         if msg.match[2]? and not msg.match[3]?
             src = 'auto'
-            dest = msg.match[3].trim()
+            dest = msg.match[2].trim()
         else
             src = (msg.match[2] ? 'auto').trim()
             dest = (msg.match[3] ? 'ru').trim()
@@ -36,7 +42,10 @@ module.exports =
             return
         safe translate src, dest, text
         .then (res) ->
-            msg.reply("Перевод: #{res}")
+            if res?
+                msg.reply("Перевод: #{res}")
+            else
+                msg.send "Сервис недоступен."
 
     onError: (msg) ->
         msg.send 'Не понимаю я эти ваши иероглифы.'

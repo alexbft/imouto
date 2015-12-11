@@ -19,10 +19,16 @@ search = (txt, num=1) ->
 
 module.exports =
     name: 'YouTube'
-    pattern: /!(youtube|видео|клип|video|yt|ютуб) (.+)/
+    pattern: /!(youtube|видео|клип|video|yt|ютуб)(?: (.+))?/
 
     onMsg: (msg, safe) ->
         txt = msg.match[2]
+        reply_to_id = msg.message_id
+        if not txt? and msg.reply_to_message?.text?
+            txt = msg.reply_to_message.text
+            reply_to_id = msg.reply_to_message.message_id
+        if not txt?
+            return        
         key = txt + "$$" + msg.chat.id
         if key not of keys
             keys[key] = true
@@ -32,11 +38,11 @@ module.exports =
             res = search(txt, 8)
         safe(res).then (results) =>
             if results?.length == 0
-                msg.reply("Ничего не найдено!")
+                msg.send "Ничего не найдено!", reply: reply_to_id
             else
                 result = misc.randomChoice results
                 url = "https://www.youtube.com/watch?v=" + result.id.videoId
-                msg.send url
+                msg.send url, reply: reply_to_id
 
     onError: (msg) ->
         msg.send "Посмотрите лучше Nyan Cat: https://www.youtube.com/watch?v=wZZ7oFKsKzY"

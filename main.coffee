@@ -68,8 +68,9 @@ updateLoop = (bot) ->
             query('getUpdates', args, timeout: (TIMEOUT + 1) * 1000).then (upd) ->
                 isQuerying = false
                 if upd.error?
-                    logger.debug 'json error'
-                    retryUpdateLoop()
+                    logger.debug 'json error: ' + upd.error
+                    if 'Conflict' not in upd.error
+                        retryUpdateLoop()
                 else
                     for u in upd
                         #console.log("Received update: " + JSON.stringify(u))
