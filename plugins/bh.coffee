@@ -73,7 +73,7 @@ bhToString = (bh) ->
 
 module.exports =
     name: 'Bugurt'
-    pattern: /!(bh|статус|тян|бугурт|багор|багет|бомбит|багратион|бамболейло|батруха|баттхерт|бантустан|бранденбург|будапешт|будда|баргест|блюменталь|бакенбард|боль|бубалех|печет|печёт|припекло|пиздец|бля|сука|спок|горит|жжет|жжёт|пригорело|ору|f+u+)(.*)/
+    pattern: /!(bh|статус|тян|кун|бугурт|багор|багет|бомбит|багратион|бамболейло|батруха|баттхерт|бантустан|бранденбург|будапешт|будда|баргест|блюменталь|бакенбард|боль|бубалех|печет|печёт|припекло|пиздец|бля|сука|спок|горит|жжет|жжёт|пригорело|ору|f+u+)(.*)/
     
     init: ->
         @stats = misc.loadJson('bh_stats') ? {}
@@ -85,7 +85,7 @@ module.exports =
             return @handleStatus msg
         userId = msg.from.id
         stats = @stats[userId] ?= newStats(userId)
-        if msg.match[1].toLowerCase() == 'тян' and stats.tyan
+        if (msg.match[1].toLowerCase() == 'тян' and stats.tyan) or (msg.match[1].toLowerCase() == 'кун' and not stats.tyan)
             @report msg, stats, 0
         else
             now = Date.now()

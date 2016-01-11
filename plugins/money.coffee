@@ -1,11 +1,22 @@
 misc = require '../lib/misc'
 config = require '../lib/config'
+pq = require '../lib/promise'
 
 search = ->
     misc.get "https://openexchangerates.org/api/latest.json",
         qs:
             app_id: config.options.exchangekey
         json: true
+
+oil = ->
+    misc.get "http://www.forexpf.ru/_informer_/commodities.php"
+    .then (first) ->
+        id = /comod\.php\?id=(\d+)/.exec(first)[1]
+        misc.get "http://www.forexpf.ru/_informer_/comod.php?id=#{id}"
+    .then (second) ->
+        cbrenta = Number(/document\.getElementById\(\"cbrenta\"\)\.innerHTML=\"([\d\.]+)\"/.exec(second)[1])
+        cbrentb = Number(/document\.getElementById\(\"cbrentb\"\)\.innerHTML=\"([\d\.]+)\"/.exec(second)[1])
+        (cbrenta + cbrentb) / 2
 
 formatDate = (date) ->
     d = date.getDate()
@@ -23,8 +34,8 @@ module.exports =
     isConf: true    
 
     onMsg: (msg, safe) ->
-        safe search()
-        .then (json) ->
+        safe pq.all [search(), oil()]
+        .then ([json, oil]) ->
             date = new Date(json.timestamp * 1000)
             calc = (from, to) ->
                 f = json.rates[from]
@@ -33,6 +44,7 @@ module.exports =
             txt = """
 Курс на #{formatDate(date)}
 
+1 Brent = #{oil.toFixed(2)} $
 1 $ = #{calc('USD', 'RUB')} деревяшек
 1 Euro = #{calc('EUR', 'RUB')} деревяшек
 1 CHF = #{calc('CHF', 'RUB')} деревяшек

@@ -2,20 +2,23 @@ pq = require '../lib/promise'
 quotes = require '../lib/quotes'
 msgCache = require '../lib/msg_cache'
 misc = require '../lib/misc'
+config = require '../lib/config'
 
 module.exports =
     name: 'Quotes (get)'
-    pattern: /!(q|цитата|quote|удали|stats)(?:\s+(.+))?$/
+    pattern: /!(q|qq|ц|цц|цитата|quote|удали|del|delete|stats)(?:\s+(.+))?$/
 
     init: ->
         quotes.init()
+        @sudoList = config.toIdList(config.options.quotes_sudo)        
         # @vote =
         #     keyboard: [[quotes.THUMBS_UP, quotes.THUMBS_DOWN]]
         #     resize_keyboard: true
         #     one_time_keyboard: true
 
     onMsg: (msg) ->
-        if msg.match[1].toLowerCase() == 'удали'
+        cmd = msg.match[1].toLowerCase()
+        if cmd in ['удали', 'del', 'delete']
             if !@checkSudo(msg)
                 return
             num = misc.tryParseInt(msg.match[2])
@@ -31,10 +34,6 @@ module.exports =
             quotes.delQuote(num)
             msg.reply("Цитата #{num} удалена.")
             return
-        if msg.match[1].toLowerCase() == 'stats'
-            msg.send quotes.getStats msg.match[2]
-            return
-        quotes.updateUsers()
         if msg.reply_to_message?
             reply = msg.reply_to_message
             if reply.forward_from?
@@ -43,6 +42,10 @@ module.exports =
                 ownerId = reply.from.id
         else
             ownerId = null
+        if cmd == 'stats'
+            msg.send quotes.getStats ownerId, msg.match[2]
+            return
+        quotes.updateUsers()
         if msg.match[2]?
             txt = msg.match[2].trim()
             num = null
@@ -60,24 +63,34 @@ module.exports =
             if ownerId?
                 quote = quotes.getByOwnerId(ownerId)
             else
-                quote = quotes.getRandom()
+                quote = quotes.getRandom(onlyPositive: cmd in ['qq', 'цц'])
         if quote?
             hdr = "Цитата №#{quote.num}"
             if quote.version <= 2
                 savedName = quote.saved_name
             else
-                savedName = quote.messages.map((mm) -> mm.saved_name).filter((n) -> n?).join(", ")
-            if savedName? and savedName != ""
-                hdr += " (#{savedName})"
+                _savedNames = quote.messages.map((mm) -> mm.saved_name).filter((n) -> n?)
+                _last = null
+                savedNames = []
+                for sn in _savedNames
+                    if sn != _last
+                        _last = sn
+                        savedNames.push sn
+                savedName = savedNames.join(", ")
             if quote.version < 5
                 hdr += " (архив)"
+            else
+                if savedName? and savedName != ""
+                    hdr += " (#{savedName})"
             rating = quotes.getRating(quote.num)
             if rating > 0
                 ratingStr = "+#{rating}"
             else
                 ratingStr = "#{rating}"
             hdr += " [ #{ratingStr} ]"
-            hdr += " #{quotes.THUMBS_UP} /palec_VEPH_#{quote.num} #{quotes.THUMBS_DOWN} /palec_HU3_#{quote.num}"
+            if quote.posterName?
+                hdr += " от #{quote.posterName}"
+            hdr += " #{quotes.THUMBS_UP} /Opy_#{quote.num} #{quotes.THUMBS_DOWN} /He_opu_#{quote.num}"
             quotes.setLastQuote(msg.chat.id, quote.num)
             msg.send(hdr).then =>
                 if quote.version >= 5
@@ -91,7 +104,8 @@ module.exports =
                         fwdFunc = (msgIndex) =>
                             if msgIndex < quote.messages.length
                                 message = quote.messages[msgIndex]
-                                buf = "<#{message.sender_name.replace('_', ' ')}>\n\n"
+                                kekerName = message.saved_name ? message.sender_name
+                                buf = "<#{kekerName.replace('_', ' ')}>\n\n"
                                 if message.text?
                                     buf += message.text
                                     msg.send(buf).then ->
@@ -100,10 +114,14 @@ module.exports =
                                     fwdFunc(msgIndex + 1)
                         fwdFunc(0)
                     else
-                        buf = "<#{quote.sender_name.replace('_', ' ')}>\n\n"
+                        kekerName = quote.saved_name ? quote.sender_name
+                        buf = "<#{kekerName.replace('_', ' ')}>\n\n"
                         if quote.reply_text?
-                            buf += '> ' + quote.reply_text.replace(/\n/g, '\n> ') + "\n"
+                            buf += '> ' + quote.reply_text.replace(/\n/g, '\n> ') + "\n\n"
                         buf += quote.text
                         msg.send(buf)
         else
             msg.reply('Цитата не найдена :(')
+
+    isSudo: (msg) ->
+        @bot.isSudo(msg) or msg.from.id in @sudoList

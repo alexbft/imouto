@@ -2,7 +2,7 @@ query = require '../lib/query'
 
 module.exports =
     name: 'Debug'
-    pattern: /!(getme|import-names|nokey)$/
+    pattern: /!(getme|import-names|qname|nokey)(?:\s+(.+))?$/
     isPrivileged: true
 
     onMsg: (msg) ->
@@ -13,7 +13,16 @@ module.exports =
             quotes = require '../lib/quotes'
             quotes.init()
             quotes.importSavedNames()
+        else if msg.match[1] == 'qname'
+            [id, name...] = msg.match[2].split(' ')
+            id = Number id
+            name = name.join(' ')
+            quotes = require '../lib/quotes'
+            quotes.init()
+            quotes.setSavedName(id, name)
+            msg.reply "Set saved name for #{id}: #{name}"
         else if msg.match[1] == 'nokey'
-            msg.send('Убираю клавиатуру', replyKeyboard: hide_keyboard: true)
+            msg.send('Ставлю клавиатуру', replyKeyboard: keyboard: [['1']]).then ->
+                msg.send('Убираю клавиатуру', replyKeyboard: hide_keyboard: true)
         else
             logger.info "Unknown debug: #{msg.match[1]}"

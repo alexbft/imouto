@@ -119,7 +119,7 @@ bhToString = function(bh) {
 
 module.exports = {
   name: 'Bugurt',
-  pattern: /!(bh|статус|тян|бугурт|багор|багет|бомбит|багратион|бамболейло|батруха|баттхерт|бантустан|бранденбург|будапешт|будда|баргест|блюменталь|бакенбард|боль|бубалех|печет|печёт|припекло|пиздец|бля|сука|спок|горит|жжет|жжёт|пригорело|ору|f+u+)(.*)/,
+  pattern: /!(bh|статус|тян|кун|бугурт|багор|багет|бомбит|багратион|бамболейло|батруха|баттхерт|бантустан|бранденбург|будапешт|будда|баргест|блюменталь|бакенбард|боль|бубалех|печет|печёт|припекло|пиздец|бля|сука|спок|горит|жжет|жжёт|пригорело|ору|f+u+)(.*)/,
   init: function() {
     var ref;
     return this.stats = (ref = misc.loadJson('bh_stats')) != null ? ref : {};
@@ -134,7 +134,7 @@ module.exports = {
     }
     userId = msg.from.id;
     stats = (base = this.stats)[userId] != null ? base[userId] : base[userId] = newStats(userId);
-    if (msg.match[1].toLowerCase() === 'тян' && stats.tyan) {
+    if ((msg.match[1].toLowerCase() === 'тян' && stats.tyan) || (msg.match[1].toLowerCase() === 'кун' && !stats.tyan)) {
       return this.report(msg, stats, 0);
     } else {
       now = Date.now();

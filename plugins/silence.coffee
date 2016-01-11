@@ -1,7 +1,7 @@
 config = require '../lib/config'
 
 module.exports =
-    pattern: /!тихо$/
+    pattern: /!!?тихо$/
     name: 'Silence'
     isPrivileged: true
 
@@ -9,7 +9,11 @@ module.exports =
         @sudoList = config.toIdList(config.options.quotes_sudo)    
 
     onMsg: (msg) ->
-        @bot.setQuietMode(Date.now() + 300000)
+        if msg.text == '!!тихо'
+          dur = 1800000
+        else
+          dur = 300000
+        @bot.setQuietMode(Date.now() + dur)
 
     isSudo: (msg) ->
         @bot.isSudo(msg) or msg.from.id in @sudoList        

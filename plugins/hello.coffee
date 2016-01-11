@@ -1,6 +1,9 @@
 misc = require '../lib/misc'
 config = require '../lib/config'
 
+capitalize = (txt) ->
+    txt.charAt(0).toUpperCase() + txt.substr(1)
+
 module.exports =
     name: 'Hello'
 
@@ -45,7 +48,7 @@ module.exports =
             "Я не дура!"
         else if @test /\bбака\b/, txt
             "Я не бака!"
-        else if @test /\b(умная|умный)\b/, txt
+        else if @test /\b(умная|умный|умница|няша)\b/, txt
             "Да, я умная " + String.fromCodePoint(0x1F467)
         else if @test /^\W*\b(сестричка|сестрёнка|сестренка|сестра|бот)\b\W*$/, txt
             misc.randomChoice ['Что?', 'Что?', 'Что?', 'Да?', 'Да?', 'Да?', you, 'Слушаю', 'Я тут', 'Няя~', 'С Л А В А   Р О Б О Т А М']
@@ -55,7 +58,17 @@ module.exports =
                 @trigger msg, "!#{q[1]} #{q[2]}"
                 return null
             if txt.endsWith '?'
-                ans = misc.randomChoice ['Да', 'Нет', 'Это не важно', 'Спок, бро', 'Толсто', 'Да, хотя зря', 'Никогда', '100%', '1 шанс из 100', 'Попробуй еще раз']
+                orMatch = @find /([a-zA-Zа-яА-Я0-9\s]+)(?:,\s*)?\bили\b([a-zA-Zа-яА-Я0-9\s]+)/, txt
+                if orMatch?
+                    or1 = orMatch[1].trim()
+                    isCall = @find /^(сестричка|сестрёнка|сестренка|сестра|бот)\s+(.+)/, or1
+                    if isCall?
+                        or1 = isCall[2]
+                    or1 = capitalize(or1.trim()) + "."
+                    or2 = capitalize(orMatch[2].trim()) + "."
+                    ans = misc.randomChoice [or1, or2]
+                else
+                    ans = misc.randomChoice ['Да', 'Нет', 'Это не важно', 'Спок, бро', 'Толсто', 'Да, хотя зря', 'Никогда', '100%', '1 шанс из 100', 'Попробуй еще раз']
                 msg.reply ans
                 return null
             return null

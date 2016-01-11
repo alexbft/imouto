@@ -4,7 +4,7 @@ fs = require 'fs'
 misc = require './misc'
 msgCache = require './msg_cache'
 
-exports.QUOTE_MERGE_TIMEOUT = QUOTE_MERGE_TIMEOUT = 200
+exports.QUOTE_MERGE_TIMEOUT = QUOTE_MERGE_TIMEOUT = 500
 
 exports.THUMBS_UP = String.fromCodePoint(0x1f44d) + String.fromCodePoint(0x1f3fb)
 exports.THUMBS_DOWN = String.fromCodePoint(0x1f44e) + String.fromCodePoint(0x1f3fb)
@@ -54,6 +54,18 @@ fromMsg = (msg) ->
     chat_id: msg.chat.id
     date: msg.date * 1000
 
+getUserNameById = (userId) ->
+    user = msgCache.getUserById userId
+    if user?
+        misc.fullName user
+    else
+        for q in quotes
+            if q.messages?
+                for m in q.messages
+                    if m.sender == userId
+                        return m.sender_name
+        null
+
 exports.add = (msg, posterId) ->
     if not initialized
         throw new Error "not initialized"
@@ -64,6 +76,7 @@ exports.add = (msg, posterId) ->
         num: num
         version: 5
         posterId: posterId
+        posterName: getUserNameById(posterId)
         date: date
         messages: [fromMsg(msg)]
 
@@ -178,14 +191,30 @@ hasSender = (q, ownerId) ->
     else
         q.messages.some (m) -> m.sender == ownerId
 
+getSenders = (q) ->
+    dict = {}
+    if not q.version? or q.version < 3
+        if q.sender?
+            dict[q.sender] ?= q.saved_name ? q.sender_name
+        if q.reply_sender?
+            dict[q.reply_sender] ?= q.reply_sender_name
+    else
+        for msg in q.messages
+            dict[msg.sender] = msg.saved_name ? msg.sender_name
+    (v for k, v of dict)
+
 _getByOwnerId = (quotes, ownerId) ->
     (q for q in quotes when hasSender(q, ownerId))
 
 exports.getByOwnerId = (ownerId) ->
     misc.randomChoice _getByOwnerId(quotes, ownerId)
 
-exports.getRandom = ->
-    misc.randomChoice quotes
+exports.getRandom = ({onlyPositive}) ->
+    if onlyPositive
+        qq = (q for q in quotes when getRating(q.num) > 0)
+    else
+        qq = quotes
+    misc.randomChoice qq
 
 lastUsersUpdate = null
 exports.updateUsers = ->
@@ -204,7 +233,8 @@ exports.updateUsers = ->
                             updates[quote.sender] = true
                             logger.info "Quotes: user #{quote.sender} changed name to #{userName}."
                         if userName == 'Unknown' or userName == ''
-                            quote.saved_name = quote.sender_name
+                            if quote.sender_name != 'Unknown' and quote.sender_name != ''
+                                quote.saved_name = quote.sender_name
                         quote.sender_name = userName
             if quote.reply_sender?
                 user = msgCache.getUserById(quote.reply_sender)
@@ -216,6 +246,8 @@ exports.updateUsers = ->
                             logger.info "Quotes: user #{quote.reply_sender} changed name to #{userName}."
                         quote.reply_sender_name = userName
         else if quote.version >= 3
+            if quote.posterId? and not quote.posterName?
+                quote.posterName = getUserNameById(quote.posterId)
             for msg in quote.messages
                 if msg.sender?
                     user = msgCache.getUserById(msg.sender)
@@ -226,10 +258,20 @@ exports.updateUsers = ->
                                 updates[msg.sender] = true
                                 logger.info "Quotes: user #{msg.sender} changed name to #{userName}."
                             if userName == 'Unknown' or userName == ''
-                                msg.saved_name = quote.sender_name
+                                if msg.sender_name != 'Unknown' and msg.sender_name != ''
+                                    msg.saved_name = msg.sender_name
                             msg.sender_name = userName
     if Object.keys(updates).length > 0
         saveQuotes()
+    return
+
+exports.setSavedName = (userId, name) ->
+    for q in quotes
+        if q.messages?
+            for msg in q.messages
+                if msg.sender == userId
+                    msg.saved_name = name
+    saveQuotes()
     return
 
 saveQuotes = ->
@@ -269,25 +311,25 @@ exports.delQuote = (num) ->
 exports.getByNumberPlus = (num) ->
     misc.randomChoice (q for q in quotes when q.num >= num)
 
-getAuthor = (q) ->
-    if q.version? and q.version >= 3
-        msg = q.messages[q.messages.length - 1]
-    else
-        msg = q
-    msg.saved_name ? msg.sender_name
-
 MOON = String.fromCodePoint(0x1F31D)
 
-exports.getStats = (query) ->
-    if not query? or query.trim() == ''
+TOP_AUTHORS = 10
+exports.getStats = (ownerId, query) ->
+    if ownerId?
+        userName = getUserNameById(ownerId)
+        len = _getByOwnerId(quotes, ownerId).length
+        "#{userName}: #{MOON} #{len} #{MOON} цитат"
+    else if not query? or query.trim() == ''
         authors = {}
         for q in quotes
-            a = getAuthor(q)
-            authors[a] = (authors[a] ? 0) + 1
+            aus = getSenders(q)
+            for a in aus
+                if a != ''
+                    authors[a] = (authors[a] ? 0) + 1
         authorTuples = ([k, v] for k, v of authors)
         authorTuples.sort ([k1, v1], [k2, v2]) -> v2 - v1
-        authorScore = ("#{a} #{MOON} #{v} #{MOON}" for [a, v] in authorTuples.slice(0, 5))
-        "Всего цитат: #{quotes.length}\nПоследняя цитата: #{getNextNum() - 1}\n\nTop 5 авторов:\n" + authorScore.join("\n")
+        authorScore = ("#{a} #{MOON} #{v} #{MOON}" for [a, v] in authorTuples.slice(0, TOP_AUTHORS))
+        "Всего цитат: #{quotes.length}\nПоследняя цитата: #{getNextNum() - 1}\n\nTop #{TOP_AUTHORS} авторов:\n" + authorScore.join("\n")
     else
         lookFor = query.toLowerCase()
         qq = (q for q in quotes when hasText(q, lookFor))
@@ -318,7 +360,7 @@ exports.vote = (num, chatId, userId, isUp) ->
     else
         null
 
-exports.getRating = (quoteNum) ->
+exports.getRating = getRating = (quoteNum) ->
     rating = 0
     if votes[quoteNum]?
         for k, v of votes[quoteNum]

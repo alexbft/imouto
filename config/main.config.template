@@ -4,8 +4,11 @@ token = ???
 # Google API key (for youtube search)
 googlekey = ???
 
+# Google CX id (image search)
+googlecx = ???
+
 # User agent (when we are impersonating a legitimate browser)
-useragent = Mozilla/5.0 (Windows NT 6.3; WOW64; rv:38.0) Gecko/20100101 Firefox/38.0
+useragent = Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2490.80 Safari/537.36
 
 # Admin list (comma-separated). You want to include your id here. Type !id to check your id.
 sudo = 
@@ -18,3 +21,6 @@ quotes_sudo =
 
 # Path to ffmpeg for voice plugin.
 ffmpeg = /path/to/ffmpeg
+
+# openexchangerate api key
+exchangekey = ???
