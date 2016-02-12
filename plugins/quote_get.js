@@ -85,7 +85,7 @@ module.exports = {
       }
     }
     if (quote != null) {
-      hdr = "Цитата №" + quote.num;
+      hdr = "<b>Цитата №" + quote.num + "</b>";
       if (quote.version <= 2) {
         savedName = quote.saved_name;
       } else {
@@ -120,11 +120,13 @@ module.exports = {
       }
       hdr += " [ " + ratingStr + " ]";
       if (quote.posterName != null) {
-        hdr += " от " + quote.posterName;
+        hdr += " от <i>" + quote.posterName + "</i>";
       }
       hdr += " " + quotes.THUMBS_UP + " /Opy_" + quote.num + " " + quotes.THUMBS_DOWN + " /He_opu_" + quote.num;
       quotes.setLastQuote(msg.chat.id, quote.num);
-      return msg.send(hdr).then((function(_this) {
+      return msg.send(hdr, {
+        parseMode: 'HTML'
+      }).then((function(_this) {
         return function() {
           var buf, fwdFunc, kekerName, ref;
           if (quote.version >= 5) {
@@ -143,10 +145,12 @@ module.exports = {
                 if (msgIndex < quote.messages.length) {
                   message = quote.messages[msgIndex];
                   kekerName = (ref = message.saved_name) != null ? ref : message.sender_name;
-                  buf = "<" + (kekerName.replace('_', ' ')) + ">\n\n";
+                  buf = "<i>" + (kekerName.replace('_', ' ')) + "</i>\n";
                   if (message.text != null) {
                     buf += message.text;
-                    return msg.send(buf).then(function() {
+                    return msg.send(buf, {
+                      parseMode: 'HTML'
+                    }).then(function() {
                       return fwdFunc(msgIndex + 1);
                     });
                   } else {
@@ -157,12 +161,15 @@ module.exports = {
               return fwdFunc(0);
             } else {
               kekerName = (ref = quote.saved_name) != null ? ref : quote.sender_name;
-              buf = "<" + (kekerName.replace('_', ' ')) + ">\n\n";
+              buf = '';
               if (quote.reply_text != null) {
-                buf += '> ' + quote.reply_text.replace(/\n/g, '\n> ') + "\n\n";
+                buf += '&gt; ' + quote.reply_text.replace(/\n/g, '\n> ') + "\n\n";
               }
+              buf += "<i>" + (kekerName.replace('_', ' ')) + "</i>\n";
               buf += quote.text;
-              return msg.send(buf);
+              return msg.send(buf, {
+                parseMode: 'HTML'
+              });
             }
           }
         };

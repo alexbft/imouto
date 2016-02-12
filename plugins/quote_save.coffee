@@ -15,7 +15,7 @@ module.exports =
         @sudoList = config.toIdList(config.options.quotes_sudo)
 
     isAcceptMsg: (msg) ->
-        msg.forward_from? and msg.chat.first_name? or
+        msg.forward_from? and msg.chat.type == 'private' or
             not msg.forward_from? and msg.reply_to_message? and @matchPattern(msg, msg.text)
 
     onMsg: (msg) ->

@@ -7,7 +7,7 @@ tg = require '../lib/tg'
 
 module.exports =
     name: 'Quotes (vote)'
-    pattern: /\/(LOYS|FUUU|ЛОЙС|ФУУУ|лайк|дизлайк|like|dislike|palec_VEPH|palec_HU3|opy|he_opu)(?:(?:_|\s+)(\d+))?/
+    pattern: /[\!\/](LOYS|FUUU|ЛОЙС|ФУУУ|дизлойс|лайк|дизлайк|like|dislike|palec_VEPH|palec_HU3|opy|he_opu)(?:(?:_|\s+)(\d+))?/
 
     init: ->
         quotes.init()
@@ -20,4 +20,4 @@ module.exports =
             rating = quotes.getRating(num)
             if rating > 0
                 rating = "+#{rating}"
-            msg.reply "Ваш голос #{if isThumbsUp then quotes.THUMBS_UP else quotes.THUMBS_DOWN} учтён. Рейтинг цитаты №#{num}: [ #{rating} ]"
+            msg.reply "Ваш голос #{if isThumbsUp then quotes.THUMBS_UP else quotes.THUMBS_DOWN} учтён. Рейтинг <b>цитаты №#{num}</b>: [ #{rating} ]", parseMode: 'HTML'

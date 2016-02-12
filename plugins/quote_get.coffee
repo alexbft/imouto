@@ -65,7 +65,7 @@ module.exports =
             else
                 quote = quotes.getRandom(onlyPositive: cmd in ['qq', 'цц'])
         if quote?
-            hdr = "Цитата №#{quote.num}"
+            hdr = "<b>Цитата №#{quote.num}</b>"
             if quote.version <= 2
                 savedName = quote.saved_name
             else
@@ -89,10 +89,10 @@ module.exports =
                 ratingStr = "#{rating}"
             hdr += " [ #{ratingStr} ]"
             if quote.posterName?
-                hdr += " от #{quote.posterName}"
+                hdr += " от <i>#{quote.posterName}</i>"
             hdr += " #{quotes.THUMBS_UP} /Opy_#{quote.num} #{quotes.THUMBS_DOWN} /He_opu_#{quote.num}"
             quotes.setLastQuote(msg.chat.id, quote.num)
-            msg.send(hdr).then =>
+            msg.send(hdr, parseMode: 'HTML').then =>
                 if quote.version >= 5
                     fwdFunc = (msgIndex) =>
                         if msgIndex < quote.messages.length
@@ -105,21 +105,22 @@ module.exports =
                             if msgIndex < quote.messages.length
                                 message = quote.messages[msgIndex]
                                 kekerName = message.saved_name ? message.sender_name
-                                buf = "<#{kekerName.replace('_', ' ')}>\n\n"
+                                buf = "<i>#{kekerName.replace('_', ' ')}</i>\n"
                                 if message.text?
                                     buf += message.text
-                                    msg.send(buf).then ->
+                                    msg.send(buf, parseMode: 'HTML').then ->
                                         fwdFunc(msgIndex + 1)
                                 else
                                     fwdFunc(msgIndex + 1)
                         fwdFunc(0)
                     else
                         kekerName = quote.saved_name ? quote.sender_name
-                        buf = "<#{kekerName.replace('_', ' ')}>\n\n"
+                        buf = ''
                         if quote.reply_text?
-                            buf += '> ' + quote.reply_text.replace(/\n/g, '\n> ') + "\n\n"
+                            buf += '&gt; ' + quote.reply_text.replace(/\n/g, '\n> ') + "\n\n"
+                        buf += "<i>#{kekerName.replace('_', ' ')}</i>\n"
                         buf += quote.text
-                        msg.send(buf)
+                        msg.send(buf, parseMode: 'HTML')
         else
             msg.reply('Цитата не найдена :(')
 

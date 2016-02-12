@@ -5,7 +5,7 @@ misc = require '../lib/misc'
 translate = (src, dest, txt) ->
     misc.getAsBrowser "http://translate.google.com/translate_a/single",
         qs:
-            client: 'your_mom'
+            client: 's'
             ie: 'UTF-8'
             oe: 'UTF-8'
             dt: 't'
@@ -23,7 +23,7 @@ translate = (src, dest, txt) ->
 
 module.exports =
     name: 'Translate'
-    pattern: /!(переведи|translate|перевод|расшифруй)( [a-z]{2})?( [a-z]{2})?(?: ([^]+))?$/
+    pattern: /!(переведи|translate|перевод|расшифруй|tr)( [a-z]{2})?( [a-z]{2})?(?: ([^]+))?$/
 
     onMsg: (msg, safe) ->
         if msg.match[2]? and not msg.match[3]?

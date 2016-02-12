@@ -90,6 +90,8 @@ module.exports = class Bot
                 args.disable_web_page_preview = !options.preview
             if options.replyKeyboard?
                 args.reply_markup = options.replyKeyboard
+            if options.parseMode?
+                args.parse_mode = options.parseMode
             tg.sendMessage args
         msg.reply = (text, options = {}) ->
             options.reply = @message_id

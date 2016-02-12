@@ -12,7 +12,7 @@ capitalize = function(txt) {
 module.exports = {
   name: 'Hello',
   isAcceptMsg: function(msg) {
-    return (msg.text != null) && !msg.text.startsWith('!') && !msg.text.startsWith('/') && ((msg.chat.first_name != null) || this.reply_to_me(msg) || this.test(/\b(сестричка|сестрёнка|сестренка|сестра|бот)\b/, msg.text));
+    return (msg.text != null) && !msg.text.startsWith('!') && !msg.text.startsWith('/') && (msg.chat.type === 'private' || this.reply_to_me(msg) || this.test(/\b(сестричка|сестрёнка|сестренка|сестра|бот|сис)\b/, msg.text));
   },
   onMsg: function(msg) {
     var res;
@@ -28,15 +28,15 @@ module.exports = {
     return this.fixPattern(pat).exec(txt);
   },
   go: function(msg) {
-    var ans, isCall, night, or1, or2, orMatch, q, txt, you;
+    var ans, isCall, night, or1, or2, orMatch, ors, q, s, txt, you;
     txt = msg.text.trim();
     you = msg.from.first_name;
     if (this.test(/\b(привет|прив\b)/, txt) && !this.test(/\bбот\b/, txt)) {
       return "Привет, " + you + "!";
     } else if (this.test(/как дела.*\?$/, txt)) {
-      return misc.randomChoice(['Хорошо!', 'Хорошо!', 'Плохо!', 'Плохо!', 'Как всегда.', 'А у тебя?', 'Чем занимаешься?', 'Я креветко', 'Истинно познавшие дзен не используют оценочных суждений.']);
-    } else if (this.test(/\b(пока|бб)\b/, txt)) {
-      return "Пока-пока, " + you + "!";
+      return misc.randomChoice(['Хорошо!', 'Хорошо.', 'Плохо!', 'Плохо.', 'Как всегда.', 'А у тебя?', 'Чем занимаешься?', 'Я креветко', 'Истинно познавшие дзен не используют оценочных суждений.']);
+    } else if (this.test(/\b(пока|бб)\b/, txt) && (msg.chat.type === 'private' || this.reply_to_me(msg) || this.test(/^(сестричка|сестрёнка|сестренка|сестра|бот|сис)\b/, txt))) {
+      return misc.randomChoice(["Пока-пока, " + you + "!", "До встречи, " + you + "!", "Чао, " + you + "!"]);
     } else if (this.test(/\b(спасибо|спс)\b/, txt)) {
       if (Math.random() < 0.5) {
         return "Не за что, " + you + "!";
@@ -58,23 +58,44 @@ module.exports = {
       return "Да, я умная " + String.fromCodePoint(0x1F467);
     } else if (this.test(/^\W*\b(сестричка|сестрёнка|сестренка|сестра|бот)\b\W*$/, txt)) {
       return misc.randomChoice(['Что?', 'Что?', 'Что?', 'Да?', 'Да?', 'Да?', you, 'Слушаю', 'Я тут', 'Няя~', 'С Л А В А   Р О Б О Т А М']);
-    } else if ((msg.chat.first_name != null) || this.reply_to_me(msg) || this.test(/^(сестричка|сестрёнка|сестренка|сестра|бот)\b/, txt)) {
-      q = this.find(/\b(скажи|покажи|переведи|найди|ищи|поищи|help|помощь|хелп|хэлп)\b(?:\s*)([^]*)/, txt);
+    } else if (msg.chat.type === 'private' || this.reply_to_me(msg) || this.test(/^(сестричка|сестрёнка|сестренка|сестра|бот|сис)\b/, txt)) {
+      q = this.find(/\b(скажи|покажи|найди|ищи|поищи|help|помощь|хелп|хэлп)\b(?:\s*)([^]*)/, txt);
       if (q != null) {
         this.trigger(msg, "!" + q[1] + " " + q[2]);
         return null;
       }
       if (txt.endsWith('?')) {
-        orMatch = this.find(/([a-zA-Zа-яА-Я0-9\s]+)(?:,\s*)?\bили\b([a-zA-Zа-яА-Я0-9\s]+)/, txt);
+        orMatch = this.find(/([a-zA-Zа-яА-Яё0-9\s,]+)\bили\b([a-zA-Zа-яА-Яё0-9\s]+)/, txt);
         if (orMatch != null) {
           or1 = orMatch[1].trim();
-          isCall = this.find(/^(сестричка|сестрёнка|сестренка|сестра|бот)\s+(.+)/, or1);
+          isCall = this.find(/^(сестричка|сестрёнка|сестренка|сестра|бот|сис)\b(.+)/, or1);
           if (isCall != null) {
             or1 = isCall[2];
           }
-          or1 = capitalize(or1.trim()) + ".";
-          or2 = capitalize(orMatch[2].trim()) + ".";
-          ans = misc.randomChoice([or1, or2]);
+          or2 = orMatch[2];
+          ors = (function() {
+            var i, len, ref, results;
+            ref = or1.split(',');
+            results = [];
+            for (i = 0, len = ref.length; i < len; i++) {
+              s = ref[i];
+              if (s.trim() !== '') {
+                results.push(s);
+              }
+            }
+            return results;
+          })();
+          ors.push(or2);
+          ors = (function() {
+            var i, len, results;
+            results = [];
+            for (i = 0, len = ors.length; i < len; i++) {
+              s = ors[i];
+              results.push(capitalize(s.trim()) + '.');
+            }
+            return results;
+          })();
+          ans = misc.randomChoice(ors);
         } else {
           ans = misc.randomChoice(['Да', 'Нет', 'Это не важно', 'Спок, бро', 'Толсто', 'Да, хотя зря', 'Никогда', '100%', '1 шанс из 100', 'Попробуй еще раз']);
         }

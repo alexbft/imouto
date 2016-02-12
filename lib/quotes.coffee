@@ -306,6 +306,9 @@ saveQuotes = ->
 exports.delQuote = (num) ->
     quotes = (q for q in quotes when q.num != num)
     saveQuotes()
+    if votes[num]?
+        delete votes[num]
+        maybeSaveVotes()
     return
 
 exports.getByNumberPlus = (num) ->

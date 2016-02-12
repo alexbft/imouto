@@ -24,7 +24,7 @@ _requestRaw = (options, cb) ->
         logger.info "#{req.method} #{req.uri.href}"
     req
 
-readStream = (stream, cb) ->
+readStream = exports.readStream = (stream, cb) ->
     bufs = []
     stream.on 'error', cb
     stream.on 'data', (d) ->

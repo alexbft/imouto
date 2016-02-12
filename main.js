@@ -101,8 +101,9 @@ updateLoop = function(bot) {
         var i, len, u;
         isQuerying = false;
         if (upd.error != null) {
-          logger.debug('json error: ' + upd.error);
-          if (indexOf.call(upd.error, 'Conflict') < 0) {
+          logger.debug('json error: ' + upd.error.toString());
+          if (indexOf.call(upd.error.toString(), 'Conflict') < 0) {
+            logger.debug("not a conflict, retrying...");
             return retryUpdateLoop();
           }
         } else {
