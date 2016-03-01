@@ -24,3 +24,6 @@ ffmpeg = /path/to/ffmpeg
 
 # openexchangerate api key
 exchangekey = ???
+
+# openweathermap api key
+weathermap = ???
