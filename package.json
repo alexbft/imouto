@@ -20,7 +20,7 @@
     "request": "2.x.x",
     "tmp": "0.0.x",
     "winston": "1.0.x",
-    "xmldoc": "0.3.x",
+    "xmldoc": "0.3.x"
   },
   "main": "./main",
   "engines": {
