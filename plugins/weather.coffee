@@ -1,6 +1,35 @@
 misc = require '../lib/misc'
 config = require '../lib/config'
 
+getIcon = (type) ->
+  switch type
+    when "01d" then "☀️"
+    when "01n" then ""
+
+    when "02d" then "🌤"
+    when "02n" then "🌤"
+
+    when "03d" then "☁️"
+    when "03n" then "☁️"
+
+    when "04d" then "☁️"
+    when "04n" then "☁️"
+
+    when "09d" then "🌧"
+    when "09n" then "🌧"
+
+    when "10d" then "🌦"
+    when "10n" then "🌦"
+
+    when "11d" then "🌩"
+    when "11n" then "🌩"
+
+    when "13d" then "🌨"
+    when "13n" then "🌨"
+
+    when "50d" then "🌫"
+    when "50n" then "🌫"
+
 weather = (cityName) ->
   misc.get 'http://api.openweathermap.org/data/2.5/weather',
     qs:
@@ -27,8 +56,9 @@ module.exports =
     res = weather(txt)
 
     safe(res).then (data) ->
+      icon = getIcon data['weather'][0]['icon']
       emoji =
-        "☀️": "#{data['main']['temp']} °C",
+        "#{icon}": "#{data['main']['temp']} °C",
         "💦": "#{data['main']['humidity']}%",
         "💨": "#{data['wind']['speed']} km/h / #{data['wind']['deg']} deg",
         "🌅": "#{new Date(data['sys']['sunrise'] * 1000).toLocaleTimeString()}",
