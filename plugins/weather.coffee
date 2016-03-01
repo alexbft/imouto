@@ -81,14 +81,12 @@ module.exports =
         return
 
     safe(res).then (data) ->
-      console.log data
-
       type = icon data['weather'][0]['icon']
       zone = timezone data['coord']['lat'], data['coord']['lon']
       sunrise = sunset = offset zone
 
       emoji =
-        "#{type}": "#{Math.floor data['main']['temp_min']} °C / #{Math.floor data['main']['temp']} °C / #{Math.floor data['main']['temp_max']} °C",
+        "#{type}": "#{Math.floor data['main']['temp']} °C",
         "💦": "#{data['main']['humidity']}%",
         "💨": "#{data['wind']['speed']} км/ч / #{degToCard data['wind']['deg']}",
         "🌅": "#{sunrise(data['sys']['sunrise'] * 1000).format('LT')}",

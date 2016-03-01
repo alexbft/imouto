@@ -120,13 +120,12 @@
       }
       return safe(res).then(function(data) {
         var desc, emoji, obj, sunrise, sunset, type, zone;
-        console.log(data);
         type = icon(data['weather'][0]['icon']);
         zone = timezone(data['coord']['lat'], data['coord']['lon']);
         sunrise = sunset = offset(zone);
         emoji = (
           obj = {},
-          obj["" + type] = (Math.floor(data['main']['temp_min'])) + " °C / " + (Math.floor(data['main']['temp'])) + " °C / " + (Math.floor(data['main']['temp_max'])) + " °C",
+          obj["" + type] = (Math.floor(data['main']['temp'])) + " °C",
           obj["💦"] = data['main']['humidity'] + "%",
           obj["💨"] = data['wind']['speed'] + " км/ч / " + (degToCard(data['wind']['deg'])),
           obj["🌅"] = "" + (sunrise(data['sys']['sunrise'] * 1000).format('LT')),
