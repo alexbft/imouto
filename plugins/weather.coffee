@@ -2,13 +2,14 @@ lang = 'ru'
 
 misc = require '../lib/misc'
 config = require '../lib/config'
+logger = require 'winston'
 tz = require 'coordinate-tz'
 
 moment = require 'moment-timezone'
 moment.locale lang
 
 degToCard = (deg) ->
-  directions = ['Север','Север-Север-Восток','Север-Восток','Восток-Север-Восток','Восток','Восток-Юг-Восток','Юг-Восток','Юг-Юг-Восток','Юг','Юг-Юг-Запад','Юг-Запад','Запад-Юг-Запад','Запад','Запад-Север-Запад','Север-Запад','Север-Север-Запад','Север']
+  directions = ['Север','Северо-Северо-Восток','Северо-Восток','Востоко-Северо-Восток','Восток','Востоко-Юго-Восток','Юго-Восток','Юго-Юго-Восток','Юг','Юго-Юго-Запад','Юго-Запад','Западо-Юго-Запад','Запад','Западо-Северо-Запад','Северо-Запад','Северо-Северо-Запад','Север']
   directions[(deg/22.5).toFixed(0)]
 
 icon = (type) ->
@@ -40,13 +41,18 @@ offset = (timezone) ->
     tzdate = moment date
     tzdate.tz timezone
 
-weather = (cityName) ->
+weather = (cityName, lat, lon) ->
+  qs =
+    units: 'metric'
+    lang: lang
+    appid: config.options.weathermap
+
+  if cityName? then qs.q = cityName else
+    qs.lat = lat
+    qs.lon = lon
+
   misc.get 'http://api.openweathermap.org/data/2.5/weather',
-    qs:
-      q: cityName
-      units: 'metric'
-      lang: lang
-      appid: config.options.weathermap
+    qs: qs
     json: true
   .then (res) ->
     if res.cod isnt 200
@@ -60,23 +66,33 @@ module.exports =
   pattern: /!(weather|погода)(?: (.+))?/
   isConf: true
 
+  isAcceptMsg: (msg) ->
+    msg.location? or @matchPattern(msg, msg.text)
+
   onMsg: (msg, safe) ->
-    txt = msg.match[2]
-    if not txt?
-      return
-    res = weather(txt)
+    if msg.location?
+      {latitude, longitude} = msg.location
+      res = weather(null, latitude, longitude)
+    else
+      txt = msg.match[2]
+      res = weather(txt)
+
+      if not txt?
+        return
 
     safe(res).then (data) ->
+      console.log data
+
       type = icon data['weather'][0]['icon']
       zone = timezone data['coord']['lat'], data['coord']['lon']
       sunrise = sunset = offset zone
 
       emoji =
-        "#{type}": "#{Math.floor data['main']['temp']} °C",
+        "#{type}": "#{Math.floor data['main']['temp_min']} °C / #{Math.floor data['main']['temp']} °C / #{Math.floor data['main']['temp_max']} °C",
         "💦": "#{data['main']['humidity']}%",
         "💨": "#{data['wind']['speed']} км/ч / #{degToCard data['wind']['deg']}",
-        "🌅": "#{sunrise(data['sys']['sunrise'] * 1000).format('LT')} #{zone}",
-        "🌄": "#{sunset(data['sys']['sunset'] * 1000).format('LT')} #{zone}"
+        "🌅": "#{sunrise(data['sys']['sunrise'] * 1000).format('LT')}",
+        "🌄": "#{sunset(data['sys']['sunset'] * 1000).format('LT')}"
 
       desc = """
 #{data['name']}, #{data['sys']['country']} - #{data['weather'][0]['main']}
@@ -86,8 +102,6 @@ module.exports =
         desc += "\n#{e}: #{emoji[e]}"
 
       msg.reply desc
-
-
 
   onError: (msg) ->
     msg.reply 'Город не найден.'
