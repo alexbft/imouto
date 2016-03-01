@@ -8,3 +8,11 @@ data/*.html
 plugins/_*.*
 node_modules
 .idea
+
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
