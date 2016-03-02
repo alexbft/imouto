@@ -57,6 +57,12 @@ weather = (cityName, lat, lon, lang) ->
     qs: qs
     json: true
 
+addSign = (x) ->
+  if x > 0
+    "+#{x}"
+  else
+    "#{x}"
+
 module.exports =
   name: 'Weather'
   pattern: /!(weather|погода)(?: (.+))?/
@@ -90,7 +96,7 @@ module.exports =
           #{data.name}, #{states[data.sys.country]}
 
           #{type} #{data.weather[0].description}
-          🌡 #{Math.round data.main.temp} °C
+          🌡 #{addSign Math.round data.main.temp} °C
           💦 #{data.main.humidity}%
           💨 #{data.wind.speed} км/ч, #{degToCard data.wind.deg}
           🌅 #{sunrise(data.sys.sunrise * 1000).format('LT')}
