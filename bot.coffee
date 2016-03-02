@@ -179,7 +179,7 @@ module.exports = class Bot
                 logger.error e.stack
 
     isValidMsg: (msg) ->
-        msg.from.id != 777000 && (@startDate - msg.date * 1000) <= 10000
+        msg.from.id != 777000 && (Date.now() - msg.date * 1000) <= 30000
 
     isSudo: (msg) ->
         msg.from.id in @sudoList

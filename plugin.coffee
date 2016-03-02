@@ -45,9 +45,9 @@ module.exports = class Plugin
 
     _onError: (msg, e) ->
         logger.warn e.stack
-        @onError msg
+        @onError msg, e
 
-    onError: (msg) ->
+    onError: (msg, e) ->
 
     matchPattern: (msg, text) ->
         msg.match = @matchPatternReal(text, @pattern)

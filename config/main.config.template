@@ -25,5 +25,8 @@ ffmpeg = /path/to/ffmpeg
 # openexchangerate api key
 exchangekey = ???
 
+# ivona keys (access:secret) - voice synth
+ivona = ???
+
 # openweathermap api key
 weathermap = ???
