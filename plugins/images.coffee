@@ -22,7 +22,7 @@ search = (txt, rsz = 1) ->
 
 module.exports =
     name: 'Images'
-    pattern: /!(покажи|пик|img|pic|moar|моар|more|еще|ещё)(?: (.+))?/
+    pattern: /!(покажи|пик|кек|пек|img|pic|moar|моар|more|еще|ещё)(?: (.+))?/
     isConf: true
 
     onMsg: (msg, safe) ->

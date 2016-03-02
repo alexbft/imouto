@@ -4,7 +4,7 @@ msgCache = require '../lib/msg_cache'
 
 module.exports =
     name: 'Quotes (save)'
-    pattern: /!?(запомни|сохрани|запиши|save)\b/
+    pattern: /!?(запомни|сохрани|запиши|save)$/
     isAcceptFwd: true
     isPrivileged: true
     warnPrivileged: false

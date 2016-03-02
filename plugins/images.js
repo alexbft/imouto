@@ -32,7 +32,7 @@ search = function(txt, rsz) {
 
 module.exports = {
   name: 'Images',
-  pattern: /!(покажи|пик|img|pic|moar|моар|more|еще|ещё)(?: (.+))?/,
+  pattern: /!(покажи|пик|кек|пек|img|pic|moar|моар|more|еще|ещё)(?: (.+))?/,
   isConf: true,
   onMsg: function(msg, safe) {
     var key, ref, ref1, res, txt;
