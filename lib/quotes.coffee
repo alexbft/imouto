@@ -58,6 +58,8 @@ fromMsg = (msg) ->
     date: msg.date * 1000
 
 getUserNameById = (userId) ->
+    if global.userNameHack(userId)?
+        return global.userNameHack(userId)
     user = msgCache.getUserById userId
     if user?
         misc.fullName user

@@ -14,6 +14,8 @@ exports.entities = new Entities
 #request.debug = true
 
 exports.fullName = (user) ->
+    if global.userNameHack(user.id)?
+        return global.userNameHack(user.id)
     if user.last_name?
         "#{user.first_name} #{user.last_name}"
     else
