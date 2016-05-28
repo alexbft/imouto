@@ -10,6 +10,13 @@ exports.sendMessage = (args) ->
         args.reply_markup = JSON.stringify args.reply_markup
     query 'sendMessage', args
 
+exports.editMessageText = (args) ->
+    logger.outMsg "(#{args.chat_id}) (edit #{args.message_id}) <<< #{args.text}"
+    if args.reply_markup?
+        #logger.debug "Keyboard: #{JSON.stringify args.reply_markup}"
+        args.reply_markup = JSON.stringify args.reply_markup
+    query 'editMessageText', args
+
 exports.sendPhoto = (args) ->
     if args.caption?
         caption = ': ' + args.caption
@@ -40,3 +47,11 @@ exports.getInfo = ->
 exports.sendSticker = (args, fn) ->
     logger.outMsg "(#{args.chat_id}) <<< [Sticker: #{fn}]"
     query 'sendSticker', args, multipart: true
+
+exports.answerCallbackQuery = (args) ->
+    logger.outMsg "(callback answer) <<< #{args.text}"
+    query 'answerCallbackQuery', args
+
+exports.leaveChat = (args) ->
+    logger.info "Leaving chat: #{args.chat_id}"
+    query 'leaveChat', args

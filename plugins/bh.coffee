@@ -1,8 +1,9 @@
 logger = require 'winston'
 
+msgCache = require '../lib/msg_cache'
 misc = require '../lib/misc'
 
-HIKKA = ['хикка', 'омега', 'корзинка', 'сыч']
+HIKKA = ['хикка', 'омега', 'корзинка', 'сыч', 'ероха', 'сыночка-корзиночка', 'доченька-боченька', 'новичок']
 MAX_PERIOD = 24 * 3600 * 1000
 SMALL_PERIOD = 5 * 60 * 1000
 
@@ -71,9 +72,22 @@ bhToString = (bh) ->
             icon: smiles.boom
             text: 'FFFFUUUUUU!!! ' + smiles.rage + smiles.rage + smiles.rage
 
+getUserId = (msg) ->
+    if msg.reply_to_message?
+        tmp = msgCache.tryResolve msg.reply_to_message
+        if tmp?
+            if tmp.forward_from?
+                tmp.forward_from.id
+            else
+                tmp.from.id
+        else
+            msg.from.id
+    else
+        msg.from.id
+
 module.exports =
     name: 'Bugurt'
-    pattern: /!(bh|статус|тян|кун|бугурт|багор|багет|бомбит|багратион|бамболейло|батруха|баттхерт|бантустан|бранденбург|будапешт|будда|баргест|блюменталь|бакенбард|боль|бубалех|печет|печёт|припекло|пиздец|бля|сука|спок|горит|жжет|жжёт|пригорело|ору|f+u+)(.*)/
+    pattern: /!(bh|статус|кто|хто|это|тян|кун|бугурт|багор|багет|бомбит|багратион|бамболейло|батруха|баттхерт|бантустан|бранденбург|будапешт|будда|баргест|блюменталь|бакенбард|боль|бубалех|печет|печёт|припекло|пиздец|бля|сука|спок|горит|жжет|жжёт|пригорело|ору|f+u+)(.*)/
     
     init: ->
         @stats = misc.loadJson('bh_stats') ? {}
@@ -83,6 +97,10 @@ module.exports =
             return @handleAdmin msg
         if msg.match[1].toLowerCase() == 'статус'
             return @handleStatus msg
+        if msg.match[1].toLowerCase() in ['кто', 'хто']
+            return @handleWhois msg
+        if msg.match[1].toLowerCase() == 'это'
+            return @handleThisis msg
         userId = msg.from.id
         stats = @stats[userId] ?= newStats(userId)
         if (msg.match[1].toLowerCase() == 'тян' and stats.tyan) or (msg.match[1].toLowerCase() == 'кун' and not stats.tyan)
@@ -97,9 +115,10 @@ module.exports =
             @report msg, stats, bhLevel
             misc.saveJson 'bh_stats', @stats
             
-    report: (msg, stats, bh) ->
+    report: (msg, stats, bh, otherUserName = null) ->
         {icon, text} = bhToString bh
-        msg.reply "Ваш статус: #{stats.status}\nУровень бугурта: #{icon} - #{text}"
+        label = if otherUserName? then "Статус #{otherUserName}" else "Ваш статус"
+        msg.reply "#{label}: #{stats.status}\nУровень бугурта: #{icon} - #{text}"
         
     handleAdmin: (msg) ->
         if not @isSudo msg
@@ -114,14 +133,49 @@ module.exports =
         misc.saveJson 'bh_stats', @stats
         
     handleStatus: (msg) ->
-        userId = msg.from.id
-        stats = @stats[userId] ?= newStats(userId)
         if msg.match[2]? and msg.match[2].startsWith ' '
+            if @isSudo msg
+                userId = getUserId msg
+            else
+                userId = msg.from.id
+            stats = @stats[userId] ?= newStats(userId)
             stats.status = msg.match[2].substr(1)
-            msg.reply 'Ваш статус обновлён.'
+            if userId == msg.from.id
+                msg.reply 'Ваш статус обновлён.'
+            else
+                name = msgCache.getUserById(userId).first_name
+                msg.reply "Статус #{name} обновлён."
             misc.saveJson 'bh_stats', @stats
         else
+            userId = getUserId msg
+            stats = @stats[userId] ?= newStats(userId)
             now = Date.now()
             removeOldMoments stats, now
             bhLevel = calculateBhLevel userId, stats.moments, now
-            @report msg, stats, bhLevel
+            name = if userId != msg.from.id then msgCache.getUserById(userId).first_name else null
+            @report msg, stats, bhLevel, name
+
+    handleWhois: (msg) ->
+        userId = getUserId msg
+        stats = @stats[userId] ?= newStats userId
+        if @isSudo(msg) and stats.whoisAdm?
+            name = stats.whoisAdm
+        else
+            name = stats.whois ? msgCache.getUserById(userId).first_name
+        if name? and name != ''
+            msg.reply "Это #{name}, #{stats.status}."
+        else
+            msg.reply "Первый раз вижу..."
+
+    handleThisis: (msg) ->
+        if not (msg.match[2]? and msg.match[2].startsWith ' ')
+            return
+        whois = msg.match[2].substr(1)
+        userId = getUserId msg
+        stats = @stats[userId] ?= newStats(userId)
+        stats.whois = whois
+        if @isSudo(msg)
+            stats.whoisAdm = whois
+        misc.saveJson 'bh_stats', @stats
+        msg.reply "Запомнила, это #{whois}."
+

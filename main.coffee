@@ -1,5 +1,7 @@
 require './lib/polyfills'
 
+global.userNameHack = (id) ->
+
 logger = require 'winston'
 
 logger.setLevels
@@ -69,7 +71,7 @@ updateLoop = (bot) ->
                 isQuerying = false
                 if upd.error?
                     logger.debug 'json error: ' + upd.error.toString()
-                    if 'Conflict' not in upd.error.toString()
+                    if upd.error.toString().indexOf('Conflict') == -1
                         logger.debug "not a conflict, retrying..."
                         retryUpdateLoop()
                 else
@@ -77,8 +79,7 @@ updateLoop = (bot) ->
                         #console.log("Received update: " + JSON.stringify(u))
                         if not lastUpdate? or u.update_id > lastUpdate
                             lastUpdate = u.update_id
-                        if u.message?
-                            bot.onMessage u.message
+                        bot.processUpdate u
                     updateLoop(bot)
             , (err) ->
                 logger.debug 'err'

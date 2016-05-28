@@ -1,8 +1,9 @@
 query = require '../lib/query'
+tg = require '../lib/tg'
 
 module.exports =
     name: 'Debug'
-    pattern: /!(getme|import-names|qname|nokey)(?:\s+(.+))?$/
+    pattern: /!(getme|import-names|qname|nokey|leave)(?:\s+(.+))?$/
     isPrivileged: true
 
     onMsg: (msg) ->
@@ -24,5 +25,7 @@ module.exports =
         else if msg.match[1] == 'nokey'
             msg.send('Ставлю клавиатуру', replyKeyboard: keyboard: [['1']]).then ->
                 msg.send('Убираю клавиатуру', replyKeyboard: hide_keyboard: true)
+        else if msg.match[1] == 'leave'
+            tg.leaveChat chat_id: msg.match[2]
         else
             logger.info "Unknown debug: #{msg.match[1]}"

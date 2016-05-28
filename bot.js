@@ -20,13 +20,27 @@ module.exports = Bot = (function() {
     this.sudoList = [];
     this.bannedIds = [];
     this.startDate = Date.now();
+    this.callbacks = {};
   }
+
+  Bot.prototype.processUpdate = function(u) {
+    if (u.message != null) {
+      this.onMessage(u.message);
+    }
+    if (u.edited_message != null) {
+      this.onEditedMessage(u.edited_message);
+    }
+    if (u.callback_query != null) {
+      return this.onCallback(u.callback_query);
+    }
+  };
 
   Bot.prototype.onMessage = function(msg) {
     var e, error, i, len, plugin, ref, ref1, ref2;
     msgCache.add(msg);
     this.logMessage(msg);
     if (!this.isValidMsg(msg)) {
+      logger.debug('Invalid message');
       return;
     }
     if (this.isQuietMode() && !this.isSudo(msg)) {
@@ -59,6 +73,37 @@ module.exports = Bot = (function() {
     }
   };
 
+  Bot.prototype.onEditedMessage = function(msg) {
+    msgCache.add(msg);
+    msg.isEdited = true;
+    this.logMessage(msg);
+  };
+
+  Bot.prototype.onCallback = function(cb) {
+    var msgId, ref;
+    this.logCallback(cb);
+    msgId = (ref = cb.message) != null ? ref.message_id : void 0;
+    if (msgId in this.callbacks) {
+      if (this.callbacks[msgId](cb) === false) {
+        delete this.callbacks[msgId];
+      }
+    }
+  };
+
+  Bot.prototype.logCallback = function(cb) {
+    var buf;
+    buf = [];
+    buf.push("(" + cb.from.id + ")" + (misc.fullName(cb.from)));
+    buf.push("(callback for #" + cb.message.message_id + ")");
+    buf.push(">>>");
+    if (cb.data != null) {
+      buf.push("" + cb.data);
+    } else {
+      buf.push("(no text)");
+    }
+    return logger.inMsg(buf.join(" "));
+  };
+
   Bot.prototype.logMessage = function(msg) {
     var buf, date;
     buf = [];
@@ -71,12 +116,15 @@ module.exports = Bot = (function() {
     if (msg.forward_from != null) {
       buf.push("(from " + (misc.fullName(msg.forward_from)) + ")");
     }
+    if (msg.isEdited) {
+      buf.push("(edit)");
+    }
     buf.push(">>>");
     if (msg.text != null) {
       buf.push(msg.text);
-    } else if (msg.new_chat_participant != null) {
+    } else if (msg.new_chat_member != null) {
       buf.push("(added user " + (misc.fullName(msg.new_chat_participant)) + ")");
-    } else if (msg.left_chat_participant != null) {
+    } else if (msg.left_chat_member != null) {
       buf.push("(removed user " + (misc.fullName(msg.left_chat_participant)) + ")");
     } else if (msg.new_chat_title != null) {
       buf.push("(renamed chat to " + msg.new_chat_title + ")");
@@ -94,13 +142,34 @@ module.exports = Bot = (function() {
       buf.push("(contact: " + msg.contact.first_name + " " + msg.contact.phone_number + ")");
     } else if (msg.location != null) {
       buf.push("(location: " + msg.location.longitude + " " + msg.location.latitude + ")");
+    } else if (msg.venue != null) {
+      buf.push("(venue)");
+    } else if (msg.pinned_message != null) {
+      buf.push("(pinned_message: " + msg.pinned_message.text + ")");
     } else {
       buf.push("(no text)");
     }
     return logger.inMsg(buf.join(" "));
   };
 
+  Bot.prototype.answerCallbackQuery = function(cb, text, options) {
+    var args;
+    if (options == null) {
+      options = {};
+    }
+    args = {
+      callback_query_id: cb.id,
+      text: text
+    };
+    if (options.showAlert != null) {
+      args.show_alert = options.showAlert;
+    }
+    return tg.answerCallbackQuery(args);
+  };
+
   Bot.prototype.extendMsg = function(msg) {
+    var bot;
+    bot = this;
     msg.send = function(text, options) {
       var args;
       if (options == null) {
@@ -116,13 +185,58 @@ module.exports = Bot = (function() {
       if (options.preview != null) {
         args.disable_web_page_preview = !options.preview;
       }
-      if (options.replyKeyboard != null) {
-        args.reply_markup = options.replyKeyboard;
+      if (options.replyMarkup != null) {
+        args.reply_markup = Object.assign({}, args.reply_markup, options.replyMarkup);
+      }
+      if (options.inlineKeyboard != null) {
+        args.reply_markup = Object.assign({}, args.reply_markup, {
+          inline_keyboard: options.inlineKeyboard
+        });
       }
       if (options.parseMode != null) {
         args.parse_mode = options.parseMode;
       }
-      return tg.sendMessage(args);
+      return tg.sendMessage(args).then((function(_this) {
+        return function(res) {
+          if ((res.message_id != null) && (options.callback != null)) {
+            bot.extendMsg(res);
+            logger.debug("set callback for " + res.message_id);
+            bot.callbacks[res.message_id] = function(cb) {
+              cb.answer = function(text, options) {
+                return bot.answerCallbackQuery(cb, text, options);
+              };
+              return options.callback(cb, res);
+            };
+          }
+          return res;
+        };
+      })(this));
+    };
+    msg.edit = function(text, options) {
+      var args;
+      if (options == null) {
+        options = {};
+      }
+      args = {
+        chat_id: this.chat.id,
+        text: text,
+        message_id: this.message_id
+      };
+      if (options.preview != null) {
+        args.disable_web_page_preview = !options.preview;
+      }
+      if (options.replyMarkup != null) {
+        args.reply_markup = Object.assign({}, args.reply_markup, options.replyMarkup);
+      }
+      if (options.inlineKeyboard != null) {
+        args.reply_markup = Object.assign({}, args.reply_markup, {
+          inline_keyboard: options.inlineKeyboard
+        });
+      }
+      if (options.parseMode != null) {
+        args.parse_mode = options.parseMode;
+      }
+      return tg.editMessageText(args);
     };
     msg.reply = function(text, options) {
       if (options == null) {
@@ -264,7 +378,7 @@ module.exports = Bot = (function() {
   };
 
   Bot.prototype.isValidMsg = function(msg) {
-    return msg.from.id !== 777000 && (Date.now() - msg.date * 1000) <= 30000;
+    return msg.from.id !== 777000 && (Date.now() - msg.date * 1000) <= 300000;
   };
 
   Bot.prototype.isSudo = function(msg) {

@@ -1,3 +1,4 @@
+prevCacheMessages = {}
 cacheMessages = {}
 cacheUsers = {}
 
@@ -12,6 +13,8 @@ _clone = (msg) ->
 
 exports.tryResolve = (msg) ->
     cached = cacheMessages[msg.message_id]
+    if not cached?
+        cached = prevCacheMessages[msg.message_id]
     if cached?
         for k, v of cached
             if not (k of msg)
@@ -21,7 +24,17 @@ exports.tryResolve = (msg) ->
 exports.getUserById = (userId) ->
     cacheUsers[userId]
 
+cacheCounter = 0
+
+rotateCache = ->
+    cacheCounter += 1
+    if cacheCounter > 1000
+        cacheCounter = 0
+        prevCacheMessages = cacheMessages
+        cacheMessages = {}
+
 exports.add = (msg) ->
+    rotateCache()
     cacheMessages[msg.message_id] = _clone(msg)
     cacheUsers[msg.from.id] = msg.from
     if msg.forward_from?

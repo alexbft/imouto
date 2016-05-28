@@ -5,6 +5,7 @@ logger = require 'winston'
 config = require './config'
 fs = require 'fs'
 path = require 'path'
+cloudscraper = require 'cloudscraper'
 
 pq = require './promise'
 
@@ -24,6 +25,12 @@ _requestRaw = (options, cb) ->
         logger.info "#{req.method} #{req.uri.href}"
     req
 
+_cloudRaw = (options, cb) ->
+    req = cloudscraper.request options, cb
+    if not options.silent
+        logger.info "(cloud) #{options.url}"
+    req
+
 readStream = exports.readStream = (stream, cb) ->
     bufs = []
     stream.on 'error', cb
@@ -36,10 +43,11 @@ readStream = exports.readStream = (stream, cb) ->
 exports.request = _request = (options) ->
     df = new pq.Deferred
     _requestRaw options, (err, code, body) ->
-        if err then df.reject(err) else df.resolve(body)
+        if err? then df.reject(err) else df.resolve(body)
     df.promise
 
 exports.getAsBrowser = _getAsBrowser = (url, options = {}) ->
+    options.method = 'GET'
     options.url = url
     options.headers ?= {}
     options.headers['User-Agent'] = config.options.useragent
@@ -54,6 +62,18 @@ exports.post = (url, options = {}) ->
     options.method = 'POST'
     options.url = url
     _request options
+
+exports.getAsCloud = _getAsCloud = (url, options = {}) ->
+    options.method = 'GET'
+    options.url = url
+    df = new pq.Deferred
+    _cloudRaw options, (err, code, body) ->
+        if err?
+            logger.warn JSON.stringify err
+            df.reject(err) 
+        else 
+            df.resolve(body)
+    df.promise 
 
 exports.google = (q) ->
     _get 'http://ajax.googleapis.com/ajax/services/search/web',

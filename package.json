@@ -11,6 +11,7 @@
     "url": "https://github.com/alexbft/imouto.git"
   },
   "dependencies": {
+    "cloudscraper": "^1.2.2",
     "coordinate-tz": "^0.1.2",
     "html-entities": "1.1.x",
     "iconv-lite": "0.4.x",

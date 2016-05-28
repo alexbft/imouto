@@ -46,6 +46,9 @@ getNextNum = ->
         maxNum = Math.max.apply Math, quotes.map (q) -> q.num
         maxNum + 1
 
+getLastNum = exports.getLastNum = ->
+    getNextNum() - 1
+
 fromMsg = (msg) ->
     id: msg.message_id
     text: msg.text

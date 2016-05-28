@@ -22,7 +22,7 @@ search = (txt, rsz = 1) ->
 
 module.exports =
     name: 'Images'
-    pattern: /!(покажи|пик|кек|пек|img|pic|moar|моар|more|еще|ещё)(?: (.+))?/
+    pattern: /!(покажи|пик|пек|img|pic|moar|моар|more|еще|ещё)(?: (.+))?/
     isConf: true
 
     onMsg: (msg, safe) ->
@@ -47,7 +47,8 @@ module.exports =
             else
                 result = misc.randomChoice results
                 url = result.link #result.unescapedUrl
-                @sendImageFromUrl msg, url, reply: msg.id
+                msg.reply url
+                #@sendImageFromUrl msg, url, reply: msg.id
 
     onError: (msg) ->
         msg.send('Поиск не удался...')
