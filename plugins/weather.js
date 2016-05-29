@@ -154,14 +154,14 @@ module.exports = {
   },
   onMsg: function(msg, safe) {
     var cmd, forecst, inlineMode, lang, latitude, longitude, ref, res, txt;
-    cmd = msg.match[1].toLowerCase();
-    inlineMode = cmd === '!погода' || cmd === '!weather';
     if (msg.location != null) {
       ref = msg.location, latitude = ref.latitude, longitude = ref.longitude;
       res = weather(null, latitude, longitude, 'ru');
       forecst = forecast(null, latitude, longitude, 'ru');
     } else {
+      cmd = msg.match[1].toLowerCase();
       lang = cmd === 'weather' || cmd === '!weather' ? 'en' : 'ru';
+      inlineMode = cmd === '!погода' || cmd === '!weather';
       moment.locale(lang);
       txt = msg.match[2];
       res = weather(txt, null, null, lang);
