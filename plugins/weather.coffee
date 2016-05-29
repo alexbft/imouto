@@ -110,15 +110,15 @@ module.exports =
     msg.location? or @matchPattern(msg, msg.text)
 
   onMsg: (msg, safe) ->
-    cmd = msg.match[1].toLowerCase()
-    inlineMode = cmd in ['!погода', '!weather']
-
     if msg.location?
       {latitude, longitude} = msg.location
       res = weather(null, latitude, longitude, 'ru')
       forecst = forecast(null, latitude, longitude, 'ru')
     else
+      cmd = msg.match[1].toLowerCase()
       lang = if cmd == 'weather' or cmd == '!weather' then 'en' else 'ru'
+      inlineMode = cmd in ['!погода', '!weather']
+
       moment.locale lang
       txt = msg.match[2]
       res = weather(txt, null, null, lang)
