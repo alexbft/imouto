@@ -43,6 +43,20 @@ offset = (timezone) ->
     tzdate = moment date
     tzdate.tz timezone
 
+forecast = (cityName, lat, lon, lang) ->
+  qs =
+    units: 'metric'
+    lang: lang
+    appid: config.options.weathermap
+
+  if cityName? then qs.q = cityName else
+    qs.lat = lat
+    qs.lon = lon
+
+  misc.get 'http://api.openweathermap.org/data/2.5/forecast',
+    qs: qs
+    json: true
+
 weather = (cityName, lat, lon, lang) ->
   qs =
     units: 'metric'
@@ -62,38 +76,22 @@ addSign = (x) ->
     "+#{x}"
   else
     "#{x}"
+    
+keyboard = [
+  [
+    {text: 'На вечер', callback_data: 'evening'},
+    {text: 'Сейчас', callback_data: 'now'},
+    {text: 'На завтра', callback_data: 'tomorrow'}
+  ]
+]
 
-module.exports =
-  name: 'Weather'
-  pattern: /!(weather|погода)(?: (.+))?/
-  isConf: true
+getWeatherFull = (data) ->
+  type = icon data['weather'][0]['icon']
+  zone = timezone data['coord']['lat'], data['coord']['lon']
+  sunrise = sunset = offset zone
 
-  isAcceptMsg: (msg) ->
-    msg.location? or @matchPattern(msg, msg.text)
-
-  onMsg: (msg, safe) ->
-    if msg.location?
-      {latitude, longitude} = msg.location
-      res = weather(null, latitude, longitude, 'ru')
-    else
-      lang = if msg.match[1].toLowerCase() == 'weather' then 'en' else 'ru'
-      txt = msg.match[2]
-      res = weather(txt, null, null, lang)
-
-      if not txt?
-        return
-
-    safe(res).then (data) ->
-      if data.cod != 200
-        logger.debug data
-        msg.reply 'Город не найден.'
-      else
-        type = icon data['weather'][0]['icon']
-        zone = timezone data['coord']['lat'], data['coord']['lon']
-        sunrise = sunset = offset zone
-
-        desc = """
-          #{data.name}, #{states[data.sys.country]}
+  """
+          #{data.name}, #{states[data.sys.country]} #{if data.jsdt then data.jsdt.fromNow() else ''}
 
           #{type} #{data.weather[0].description}
           🌡 #{addSign Math.round data.main.temp} °C
@@ -102,7 +100,91 @@ module.exports =
           🌅 #{sunrise(data.sys.sunrise * 1000).format('LT')}
           🌄 #{sunset(data.sys.sunset * 1000).format('LT')}
         """
-        msg.send desc
+
+module.exports =
+  name: 'Weather'
+  pattern: /!(weather|погода|!погода|!weather)(?: (.+))?/
+  isConf: false
+
+  isAcceptMsg: (msg) ->
+    msg.location? or @matchPattern(msg, msg.text)
+
+  onMsg: (msg, safe) ->
+    cmd = msg.match[1].toLowerCase()
+    inlineMode = cmd in ['!погода', '!weather']
+
+    if msg.location?
+      {latitude, longitude} = msg.location
+      res = weather(null, latitude, longitude, 'ru')
+      forecst = forecast(null, latitude, longitude, 'ru')
+    else
+      lang = if cmd == 'weather' or cmd == '!weather' then 'en' else 'ru'
+      moment.locale lang
+      txt = msg.match[2]
+      res = weather(txt, null, null, lang)
+      forecst = forecast(txt, latitude, longitude, lang)
+
+      if not txt?
+        return
+
+    safe(res).then (data) =>
+      if data.cod != 200
+        logger.debug data
+        msg.reply 'Город не найден.'
+      else
+        if inlineMode
+          @sendInline msg, data, safe(forecst)
+        else
+          msg.send getWeatherFull(data)
+
+  sendInline: (msg, data, forecast) ->
+    context =
+      current: data
+      now: data
+    msg.send getWeatherFull(data),
+      inlineKeyboard: keyboard,
+      callback: (cb, msg) => @onCallback context, cb, msg, forecast
+
+  updateInline: (context, data) ->
+    console.log 'update inline', data
+
+    context.msg.edit getWeatherFull(data),
+      inlineKeyboard: keyboard
+    .then (res) ->
+      if res?.message_id?
+        context.current = data
+    return
+
+  onCallback: (context, cb, msg, forecast) ->
+    tomorrow = moment.unix(context.now.dt).add(1, 'days').startOf('day')
+    context.msg = msg
+
+    fiveDays = forecast.then (res) ->
+      res.list.map((v) -> Object.assign(v, {
+        coord: context.now.coord,
+        name: res.city.name,
+        sys: Object.assign(v.sys, {
+          country: res.city.country,
+          sunrise: context.now.sys.sunrise,
+          sunset: context.now.sys.sunset
+        })
+        jsdt: moment.unix(v.dt)
+      }))
+
+    filterBy = (promise, predicate) -> promise.then (res) -> res.filter(predicate)
+
+    switch cb.data
+      when 'now'
+        @updateInline context, context.now
+
+      when 'evening'
+        filterBy(fiveDays, ({jsdt}) -> jsdt.isBefore(tomorrow)).then (res) =>
+          @updateInline context, res[res.length - 1]
+
+      when 'tomorrow'
+        filterBy(fiveDays, ({jsdt}) -> jsdt.isAfter(tomorrow)).then (res) =>
+          @updateInline context, res[1]
+    return
 
   onError: (msg) ->
     msg.reply 'Кажется, дождь начинается.'
