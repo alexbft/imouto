@@ -114,6 +114,7 @@ module.exports =
       {latitude, longitude} = msg.location
       res = weather(null, latitude, longitude, 'ru')
       forecst = forecast(null, latitude, longitude, 'ru')
+      inlineMode = true
     else
       cmd = msg.match[1].toLowerCase()
       lang = if cmd == 'weather' or cmd == '!weather' then 'en' else 'ru'
@@ -146,7 +147,7 @@ module.exports =
       callback: (cb, msg) => @onCallback context, cb, msg, forecast
 
   updateInline: (context, data) ->
-    console.log 'update inline', data
+    #console.log 'update inline', data
 
     context.msg.edit getWeatherFull(data),
       inlineKeyboard: keyboard

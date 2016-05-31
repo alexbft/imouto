@@ -158,6 +158,7 @@ module.exports = {
       ref = msg.location, latitude = ref.latitude, longitude = ref.longitude;
       res = weather(null, latitude, longitude, 'ru');
       forecst = forecast(null, latitude, longitude, 'ru');
+      inlineMode = true;
     } else {
       cmd = msg.match[1].toLowerCase();
       lang = cmd === 'weather' || cmd === '!weather' ? 'en' : 'ru';
@@ -201,7 +202,6 @@ module.exports = {
     });
   },
   updateInline: function(context, data) {
-    console.log('update inline', data);
     context.msg.edit(getWeatherFull(data), {
       inlineKeyboard: keyboard
     }).then(function(res) {
