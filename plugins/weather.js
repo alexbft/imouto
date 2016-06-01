@@ -138,11 +138,11 @@ keyboard = [
 ];
 
 getWeatherFull = function(data) {
-  var sunrise, sunset, type, zone;
+  var dateFrom, sunrise, sunset, type, zone;
   type = icon(data['weather'][0]['icon']);
   zone = timezone(data['coord']['lat'], data['coord']['lon']);
-  sunrise = sunset = offset(zone);
-  return data.name + ", " + states[data.sys.country] + " " + (data.jsdt ? data.jsdt.fromNow() : '') + "\n\n" + type + " " + data.weather[0].description + "\n🌡 " + (addSign(Math.round(data.main.temp))) + " °C\n💦 " + data.main.humidity + "%\n💨 " + data.wind.speed + " км/ч, " + (degToCard(data.wind.deg)) + "\n🌅 " + (sunrise(data.sys.sunrise * 1000).format('LT')) + "\n🌄 " + (sunset(data.sys.sunset * 1000).format('LT'));
+  sunrise = sunset = dateFrom = offset(zone);
+  return data.name + ", " + states[data.sys.country] + " " + (data.jsdt ? dateFrom(data.jsdt).fromNow() : '') + "\n\n" + type + " " + data.weather[0].description + "\n🌡 " + (addSign(Math.round(data.main.temp))) + " °C\n💦 " + data.main.humidity + "%\n💨 " + data.wind.speed + " км/ч, " + (degToCard(data.wind.deg)) + "\n🌅 " + (sunrise(data.sys.sunrise * 1000).format('LT')) + "\n🌄 " + (sunset(data.sys.sunset * 1000).format('LT'));
 };
 
 module.exports = {
