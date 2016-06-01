@@ -88,10 +88,10 @@ keyboard = [
 getWeatherFull = (data) ->
   type = icon data['weather'][0]['icon']
   zone = timezone data['coord']['lat'], data['coord']['lon']
-  sunrise = sunset = offset zone
+  sunrise = sunset = weatherWhen = offset zone
 
   """
-          #{data.name}, #{states[data.sys.country]} #{if data.jsdt then data.jsdt.fromNow() else ''}
+          #{data.name}, #{states[data.sys.country]} #{if data.jsdt then weatherWhen(data.jsdt).fromNow() else ''}
 
           #{type} #{data.weather[0].description}
           🌡 #{addSign Math.round data.main.temp} °C
