@@ -8,4 +8,4 @@ module.exports =
         phrases = msg.match[1].trim().split(',')
         for phrase, index in phrases
             phrases[index] = encodeURIComponent(phrase.trim())
-        msg.send 'http://dogr.io/' + phrases.join('/') + '.png?split=false&.png'
+        @sendImageFromUrl msg, 'http://dogr.io/' + phrases.join('/') + '.png?split=false&.png'

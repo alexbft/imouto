@@ -1,3 +1,4 @@
+config = require '../lib/config'
 misc = require '../lib/misc'
 
 getJson = (url) ->
@@ -8,6 +9,4 @@ module.exports =
     name: 'QR'
 
     onMsg: (msg, safe) ->
-        encoded = encodeURIComponent('https://api.qrserver.com/v1/create-qr-code/?size=500x500&format=png&data=' + msg.match[1])
-        safe getJson 'https://www.lknsuite.com/shortener/api/create?url=' + encoded
-            .then (json) -> msg.send json.url
+        @sendImageFromUrl msg, 'https://api.qrserver.com/v1/create-qr-code/?size=500x500&format=png&data=' + encodeURIComponent(msg.match[1])
