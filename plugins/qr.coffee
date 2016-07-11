@@ -1,9 +1,6 @@
 config = require '../lib/config'
 misc = require '../lib/misc'
 
-getJson = (url) ->
-    misc.get url, json: true
-
 module.exports =
     pattern: /!qr (.+)/
     name: 'QR'
