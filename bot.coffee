@@ -166,7 +166,14 @@ module.exports = class Bot
                 args.reply_markup = Object.assign {}, args.reply_markup, {inline_keyboard: options.inlineKeyboard}
             if options.parseMode?
                 args.parse_mode = options.parseMode
-            tg.editMessageText args
+            tg.editMessageText(args).then (res) =>
+                if res.message_id? and options.callback?
+                    bot.extendMsg res
+                    logger.debug "set callback for #{res.message_id}"
+                    bot.callbacks[res.message_id] = (cb) -> 
+                        cb.answer = (text, options) -> bot.answerCallbackQuery cb, text, options
+                        options.callback cb, res
+                res
 
         msg.reply = (text, options = {}) ->
             options.reply = @message_id
