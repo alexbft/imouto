@@ -113,6 +113,8 @@ module.exports = {
                   reqToS = 'деревяшек';
                 } else if (reqTo === 'BYR') {
                   reqToS = 'перков';
+                } else if (reqTo === 'BYN') {
+                  reqToS = 'новоперков';
                 } else {
                   reqToS = reqTo;
                 }
@@ -127,7 +129,7 @@ module.exports = {
               return msg.reply('Не могу посчитать!');
             }
           } else {
-            txt = "Курс на *" + (formatDate(date)) + "*\n\n1 Brent = *" + ((ref = oil != null ? oil.toFixed(2) : void 0) != null ? ref : '???') + "*$\n1 $ = " + (calc('USD', 'RUB')) + " деревяшек\n1 Euro = " + (calc('EUR', 'RUB')) + " деревяшек\n1 CHF = " + (calc('CHF', 'RUB')) + " деревяшек\n1 Pound = " + (calc('GBP', 'EUR')) + " евро = " + (calc('GBP', 'RUB')) + " деревяшек\n1 Bitcoin = " + (calc('BTC', 'USD')) + "$ = " + (calc('BTC', 'RUB')) + " деревяшек\n1 гривна = " + (calc('UAH', 'RUB')) + " деревяшек\n1 деревяшка = " + (calc('RUB', 'BYR')) + " перков";
+            txt = "Курс на *" + (formatDate(date)) + "*\n\n1 Brent = *" + ((ref = oil != null ? oil.toFixed(2) : void 0) != null ? ref : '???') + "*$\n1 $ = " + (calc('USD', 'RUB')) + " деревяшек\n1 Euro = " + (calc('EUR', 'RUB')) + " деревяшек\n1 CHF = " + (calc('CHF', 'RUB')) + " деревяшек\n1 Pound = " + (calc('GBP', 'EUR')) + " евро = " + (calc('GBP', 'RUB')) + " деревяшек\n1 Bitcoin = " + (calc('BTC', 'USD')) + "$ = " + (calc('BTC', 'RUB')) + " деревяшек\n1 гривна = " + (calc('UAH', 'RUB')) + " деревяшек\n1 деревяшка = " + (calc('RUB', 'BYN')) + " новоперков";
             return msg.send(txt, {
               parseMode: 'Markdown'
             });
