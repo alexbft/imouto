@@ -1,5 +1,5 @@
 weather_command = require './weather_command'
-
+logger = require 'winston'
 
 module.exports =
   onLocation: (msg, location_msg, safe) ->

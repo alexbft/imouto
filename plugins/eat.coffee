@@ -15,7 +15,24 @@ radiusKeyboard = [
   ]
 ]
 
+days = ['воскресенье', 'понедельник', 'вторник', 'среда', 'четверг', 'пятница', 'суббота']
 priceLevels = ['бесплатно', 'недорого', 'среднее по цене', 'дорого', 'очень дорого']
+
+getWorkTime = (periods) ->
+  currentDay = (new Date()).getDay()
+
+  if periods?
+    period = periods[currentDay]
+
+    if period? and period.open? and period.close?
+      open = period.open.time.substr(0, 2) + ':' + period.open.time.substr(2) 
+      close = period.close.time.substr(0, 2) + ':' + period.close.time.substr(2) 
+      day = days[currentDay]
+      "#{day} - с #{open} до #{close}"
+    else
+      'Нет информации'
+  else
+    'Нет информации'
 
 normalizeDistance = (distance) ->
   if distance < 1
@@ -73,11 +90,6 @@ getEfoosByReq = (datas, reqData, cb) ->
   index = reqData.current - 1
   data = datas[index]
 
-  if data.opening_hours?
-    openNow = if data.opening_hours.open_now then 'Да' else 'Нет'
-  else
-    openNow = 'Нет информации'
-
   if data.price_level?
     priceLevel = priceLevels[data.price_level]
   else
@@ -100,11 +112,16 @@ getEfoosByReq = (datas, reqData, cb) ->
 
       address = 'Нет информации'
       address = result.formatted_address if result.formatted_address?
+      
+      if result.opening_hours? and result.opening_hours.periods?
+        time = getWorkTime result.opening_hours.periods
+      else
+        time = 'Нет информации'
 
       raw = """
         #{reqData.current}/#{reqData.total}
         Название: #{data.name}
-        Открыт: #{openNow}
+        Время работы: #{time}
         Уровень цен: #{priceLevel}
         Рейтинг: #{rating}
         Расстояние: #{distance}
@@ -134,6 +151,7 @@ module.exports =
   changeToRadiusInline: (msg, location) ->
     msg.edit 'Выберите радиус поиска.',
       inlineKeyboard: radiusKeyboard,
+      preview: false,
       callback: (_cb, _msg) => @findEfoos _cb, _msg, location
 
   findEfoos: (cb, msg, location) ->
@@ -149,6 +167,7 @@ module.exports =
       }
       getEfoosByReq data.results, reqData, (efoos) =>
         msg.edit efoos.raw,
+          preview: false,
           inlineKeyboard: efoos.keyboard,
           callback: (_cb, _msg) => @viewAction _cb, _msg, data, reqData
 
@@ -157,11 +176,13 @@ module.exports =
       reqData.current--
       getEfoosByReq data.results, reqData, (efoos) =>
         msg.edit efoos.raw,
+          preview: false,
           inlineKeyboard: efoos.keyboard
     else if cb.data is 'next' and reqData.current < reqData.total
       reqData.current++
       getEfoosByReq data.results, reqData, (efoos) =>
         msg.edit efoos.raw,
+          preview: false,
           inlineKeyboard: efoos.keyboard
     else if cb.data is 'photo' and data.results[reqData.current - 1].photos.length > 0
       @sendImageFromUrl msg, "#{PhotoAPIUrl}?key=#{APIKey}&photoreference=#{data.results[reqData.current - 1].photos[0].photo_reference}&maxwidth=800"
