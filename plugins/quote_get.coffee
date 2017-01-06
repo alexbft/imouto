@@ -6,7 +6,7 @@ msgCache = require '../lib/msg_cache'
 misc = require '../lib/misc'
 config = require '../lib/config'
 
-CB_DELAY = 2000
+CB_DELAY = 1500
 
 formatDate = (date) ->
     d = date.getDate()
@@ -30,7 +30,12 @@ keyboard = [
                     {text: '<', callback_data: 'prev'},
                     {text: '?', callback_data: 'random'},
                     {text: '>', callback_data: 'next'},
-                    {text: '>|', callback_data: 'last'}]]
+                    {text: '>|', callback_data: 'last'},
+                    {text: '[x]', callback_data: 'close'}]]
+
+keyboard2 = [[
+    {text: quotes.THUMBS_UP, callback_data: 'up'},
+    {text: quotes.THUMBS_DOWN, callback_data: 'down'}]]
 
 module.exports =
     name: 'Quotes (get)'
@@ -73,29 +78,43 @@ module.exports =
         if cmd == 'stats'
             msg.send quotes.getStats ownerId, msg.match[2]
             return
-        inlineMode = cmd in ['!q', '!ц']
+        inlineMode = cmd not in ['!q', '!ц']
         quotes.updateUsers()
+        queryInfo = null
         if msg.match[2]?
             txt = msg.match[2].trim()
             num = null
             if txt.endsWith('+')
                 num = misc.tryParseInt(txt.substr(0, txt.length - 1))
                 if num?
-                    quote = quotes.getByNumberPlus(num)
+                    queryInfo = "Начиная с №#{num}"
+                    quoteSet = quotes.getByNumberPlusAll(num)
+                    quote = misc.randomChoice quoteSet
             if not num?
                 num = misc.tryParseInt(txt)
                 if num?
+                    quoteSet = quotes.getRandomAll()
                     quote = quotes.getByNumber(num)
                 else
-                    quote = quotes.getByText(msg.match[2].trim(), ownerId)
+                    queryInfo = "Содержит: '#{msg.match[2].trim()}'"
+                    if ownerId?
+                        queryInfo += " Автор: #{quotes.getUserNameById(ownerId)}"
+                    quoteSet = quotes.getByTextAll(msg.match[2].trim(), ownerId)
+                    quote = misc.randomChoice quoteSet
         else
             if ownerId?
-                quote = quotes.getByOwnerId(ownerId)
+                queryInfo = "Автор: #{quotes.getUserNameById(ownerId)}"
+                quoteSet = quotes.getByOwnerIdAll(ownerId)
+                quote = misc.randomChoice quoteSet
             else
-                quote = quotes.getRandom(onlyPositive: cmd in ['qq', 'цц'])
+                onlyPositive = cmd in ['qq', 'цц']
+                if onlyPositive
+                    queryInfo = "Только с положительным рейтингом"                
+                quoteSet = quotes.getRandomAll(onlyPositive: onlyPositive)
+                quote = misc.randomChoice quoteSet
         if quote?
             if inlineMode
-                @sendInline msg, quote
+                @sendInline msg, quote, quoteSet, queryInfo
             else
                 hdr = @getQuoteHeader quote, false
                 quotes.setLastQuote(msg.chat.id, quote.num)
@@ -185,13 +204,21 @@ module.exports =
             buf += sanitizeHtml quote.text
             buf
 
-    getQuoteFull: (quote) ->
-        "#{@getQuoteHeader(quote, true)}\n\n#{@getQuoteText(quote)}"
+    getQuoteFull: ({quote, quoteSet, queryInfo}) ->
+        prefix = "<code>Всего: #{quoteSet.length}</code>"
+        if queryInfo?
+            prefix = "<code>#{queryInfo}</code>\n#{prefix}"
+        "#{prefix}\n\n#{@getQuoteHeader(quote, true)}\n\n#{@getQuoteText(quote)}"
 
-    sendInline: (msg, quote) ->
+    sendInline: (msg, quote, quoteSet, queryInfo) ->
         context =
             quote: quote
-        msg.send @getQuoteFull(quote),
+            quoteSet: quoteSet
+            index: quoteSet.indexOf(quote)
+            queryInfo: queryInfo
+            mediaForwarded: {}
+            keyboard: keyboard
+        msg.send @getQuoteFull(context), 
             parseMode: 'HTML'
             preview: false
             inlineKeyboard: keyboard
@@ -201,7 +228,7 @@ module.exports =
         if not @bot.isSudo cb
             now = Date.now()
             if @lastClick? and now - @lastClick < CB_DELAY
-                cb.answer 'Слишком много запросов, подождите 5 секунд...'
+                cb.answer 'Слишком много запросов, подождите 3 секунды...'
                 return
             @lastClick = now
         context.msg = msg
@@ -211,35 +238,44 @@ module.exports =
             when 'down'
                 @vote context, cb, false
             when 'prev'
-                num = context.quote.num
-                quote = null
-                while not quote? and num > 1
-                    num -= 1
-                    quote = quotes.getByNumber num
-                if quote?
-                    @updateInline context, quote
-            when 'next'
-                num = context.quote.num
-                quote = null
-                maxNum = quotes.getLastNum()
-                while not quote? and num < maxNum
-                    num += 1
-                    quote = quotes.getByNumber num
-                if quote?
-                    @updateInline context, quote
-            when 'random'
-                quote = quotes.getRandom(onlyPositive: false)
-                if quote?
-                    @updateInline context, quote                
-            when 'last'
-                quote = quotes.getByNumber quotes.getLastNum()
-                if quote?
-                    @updateInline context, quote
-            when 'media'
-                if @isSudo cb
-                    @forwardMedia msg, context.quote
+                if context.index > 0
+                    context.index -= 1
                 else
-                    cb.answer "Введите !q #{context.quote.num} чтобы получить [media]"
+                    context.index = context.quoteSet.length - 1
+                context.quote = context.quoteSet[context.index]
+                @updateInline context
+                cb.answer ''
+            when 'next'
+                if context.index + 1 < context.quoteSet.length
+                    context.index += 1
+                else
+                    context.index = 0
+                context.quote = context.quoteSet[context.index]
+                @updateInline context
+                cb.answer ''
+            when 'random'
+                index = misc.random context.quoteSet.length
+                if index != context.index
+                    context.index = index
+                    context.quote = context.quoteSet[context.index]
+                    @updateInline context
+                cb.answer ''
+            when 'last'
+                index = context.quoteSet.length - 1
+                if index != context.index
+                    context.index = index
+                    context.quote = context.quoteSet[context.index]
+                    @updateInline context
+                cb.answer ''
+            when 'media'
+                if not context.mediaForwarded[context.index]
+                    context.mediaForwarded[context.index] = true
+                    @forwardMedia msg, context.quote
+                cb.answer ''
+            when 'close'
+                context.keyboard = keyboard2
+                @updateInline context, true
+                cb.answer ''
             else
                 logger.warn 'unknown data'
         return
@@ -265,20 +301,19 @@ module.exports =
             if rating > 0
                 rating = "+#{rating}"            
             cb.answer "Ваш голос #{if isUp then quotes.THUMBS_UP else quotes.THUMBS_DOWN} учтён. Рейтинг цитаты №#{num}: [ #{rating} ]"
-            @updateInline(context, context.quote, true)
+            @updateInline(context, true)
         return
 
-    updateInline: (context, quote, force = false) ->
-        if force or context.quote.num != quote.num
-            context.msg.edit @getQuoteFull(quote),
-                parseMode: 'HTML'
-                preview: false
-                inlineKeyboard: keyboard
-            .then (res) =>
-                if res?.message_id?
-                    context.quote = quote
-                else
-                    @lastClick = Date.now() + 10000
+    updateInline: (context, force = false) ->
+        if not force and context.quoteSet.length <= 1
+            return
+        context.msg.edit @getQuoteFull(context),
+            parseMode: 'HTML'
+            preview: false
+            inlineKeyboard: context.keyboard
+        .then (res) =>
+            if not res?.message_id?
+                @lastClick = Date.now() + 10000
         return
 
     isSudo: (msg) ->
