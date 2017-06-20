@@ -80,6 +80,8 @@ module.exports =
                                 reqToS = 'деревяшек'
                             else if reqTo == 'BYR'
                                 reqToS = 'перков'
+                            else if reqTo == 'BYN'
+                                reqToS = 'новоперков'
                             else
                                 reqToS = reqTo
                             txt = "#{amount} #{reqFrom} = #{calc(reqFrom, reqTo, amount)} #{reqToS}"
@@ -99,7 +101,7 @@ module.exports =
                         1 Pound = #{calc('GBP', 'EUR')} евро = #{calc('GBP', 'RUB')} деревяшек
                         1 Bitcoin = #{calc('BTC', 'USD')}$ = #{calc('BTC', 'RUB')} деревяшек
                         1 гривна = #{calc('UAH', 'RUB')} деревяшек
-                        1 деревяшка = #{calc('RUB', 'BYR')} перков"""
+                        1 бульба = #{calc('BYN', 'USD')}$ = #{calc('BYN', 'RUB')} деревяшек"""
                     msg.send txt, parseMode: 'Markdown'
             catch e
                 @_onError msg, e

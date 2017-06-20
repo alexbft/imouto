@@ -57,7 +57,7 @@ fromMsg = (msg) ->
     chat_id: msg.chat.id
     date: msg.date * 1000
 
-getUserNameById = (userId) ->
+exports.getUserNameById = getUserNameById = (userId) ->
     if global.userNameHack(userId)?
         return global.userNameHack(userId)
     user = msgCache.getUserById userId
@@ -183,12 +183,15 @@ hasText = (q, lookFor) ->
             m.sender_name? and m.sender_name.toLowerCase().indexOf(lookFor) != -1 or
             m.saved_name? and m.saved_name.toLowerCase().indexOf(lookFor) != -1
 
-exports.getByText = (text, ownerId) ->
+exports.getByTextAll = getByTextAll = (text, ownerId) ->
     lookFor = text.toLowerCase()
     qq = (q for q in quotes when hasText(q, lookFor))
     if ownerId?
         qq = _getByOwnerId(qq, ownerId)
-    misc.randomChoice qq
+    qq
+
+exports.getByText = (text, ownerId) ->
+    misc.randomChoice getByTextAll text, ownerId
 
 hasSender = (q, ownerId) ->
     if not q.version? or q.version < 3
@@ -211,15 +214,19 @@ getSenders = (q) ->
 _getByOwnerId = (quotes, ownerId) ->
     (q for q in quotes when hasSender(q, ownerId))
 
-exports.getByOwnerId = (ownerId) ->
-    misc.randomChoice _getByOwnerId(quotes, ownerId)
+exports.getByOwnerIdAll = (ownerId) -> _getByOwnerId quotes, ownerId
 
-exports.getRandom = ({onlyPositive}) ->
+exports.getByOwnerId = (ownerId) ->
+    misc.randomChoice _getByOwnerId quotes, ownerId
+
+exports.getRandomAll = getRandomAll = ({onlyPositive} = {}) ->
     if onlyPositive
-        qq = (q for q in quotes when getRating(q.num) > 0)
+        (q for q in quotes when getRating(q.num) > 0)
     else
-        qq = quotes
-    misc.randomChoice qq
+        quotes
+
+exports.getRandom = (settings) ->
+    misc.randomChoice getRandomAll settings
 
 lastUsersUpdate = null
 exports.updateUsers = ->
@@ -316,8 +323,10 @@ exports.delQuote = (num) ->
         maybeSaveVotes()
     return
 
+exports.getByNumberPlusAll = getByNumberPlusAll = (num) -> (q for q in quotes when q.num >= num)
+
 exports.getByNumberPlus = (num) ->
-    misc.randomChoice (q for q in quotes when q.num >= num)
+    misc.randomChoice getByNumberPlusAll num
 
 MOON = String.fromCodePoint(0x1F31D)
 
