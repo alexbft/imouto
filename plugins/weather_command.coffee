@@ -5,6 +5,7 @@ moment = require 'moment-timezone'
 misc = require '../lib/misc'
 config = require '../lib/config'
 states = require '../lib/country_codes'
+cities = require '../lib/users_cities'
 
 moment.locale 'ru'
 
@@ -107,34 +108,30 @@ getWeatherFull = (data) ->
 module.exports =
   name: 'Weather'
   pattern: /!(weather|погода|!погода|!weather)(?: (.+))?/
-  ###
-  isConf: false
 
-  isAcceptMsg: (msg) ->
-    msg.location? or @matchPattern(msg, msg.text)
-  ###
+  init: ->
+    cities.init()
+
   onMsg: (msg, safe) ->
-    ###
-    if msg.location?
-      {latitude, longitude} = msg.location
-      res = weather(null, latitude, longitude, 'ru')
-      forecst = forecast(null, latitude, longitude, 'ru')
-      inlineMode = true
-    else
-    ###
-    
     cmd = msg.match[1].toLowerCase()
+    userId = msg.from.id
     lang = if cmd == 'weather' or cmd == '!weather' then 'en' else 'ru'
     inlineMode = cmd in ['!погода', '!weather']
 
     moment.locale lang
     txt = msg.match[2]
 
-    if not txt?
-      return
+    if txt?
+      cities.add(userId, txt, null, null)
+    else
+      user = cities.get(userId)
+      if not user?
+        return
 
-    res = weather(txt, null, null, lang)
-    forecst = forecast(txt, null, null, lang)
+      {name: txt, lat, lon} = user
+
+    res = weather(txt, lat, lon, lang)
+    forecst = forecast(txt, lat, lon, lang)
 
     safe(res).then (data) =>
       if data.cod != 200
@@ -163,8 +160,6 @@ module.exports =
       callback: (cb, msg) => @onCallback context, cb, msg, forecast
 
   updateInline: (context, data) ->
-    #console.log 'update inline', data
-
     context.msg.edit getWeatherFull(data),
       inlineKeyboard: keyboard
     .then (res) ->
