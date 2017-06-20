@@ -34,6 +34,6 @@
     "build:watch": "coffee -c -b -w ."
   },
   "devDependencies": {
-    "coffee-script": "^1.10.0"
+    "coffee-script": "^1.12.6"
   }
 }
