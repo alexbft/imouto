@@ -14,12 +14,21 @@ getCurrencies = ->
     misc.get "https://openexchangerates.org/api/currencies.json",
         json: true
 
+unpack = (code) ->
+    env =
+        eval: (c) -> code = c
+        window: {}
+        document: {}
+    eval "with(env) {#{code}}"
+    code
+
 oil = ->
     misc.get "http://www.forexpf.ru/_informer_/commodities.php"
     .then (first) ->
         id = /comod\.php\?id=(\d+)/.exec(first)[1]
         misc.get "http://www.forexpf.ru/_informer_/comod.php?id=#{id}"
     .then (second) ->
+        second = unpack second
         cbrenta = Number(/document\.getElementById\(\"cbrenta\"\)\.innerHTML=\"([\d\.]+)\"/.exec(second)[1])
         cbrentb = Number(/document\.getElementById\(\"cbrentb\"\)\.innerHTML=\"([\d\.]+)\"/.exec(second)[1])
         (cbrenta + cbrentb) / 2
@@ -96,10 +105,10 @@ module.exports =
 
                         1 Brent = *#{oil?.toFixed(2) ? '???'}*$
                         1 $ = #{calc('USD', 'RUB')} деревяшек
-                        1 Euro = #{calc('EUR', 'RUB')} деревяшек
-                        1 CHF = #{calc('CHF', 'RUB')} деревяшек
-                        1 Pound = #{calc('GBP', 'EUR')} евро = #{calc('GBP', 'RUB')} деревяшек
-                        1 Bitcoin = #{calc('BTC', 'USD')}$ = #{calc('BTC', 'RUB')} деревяшек
+                        1 € = #{calc('EUR', 'RUB')} деревяшек
+                        1 Swiss franc = #{calc('CHF', 'RUB')} деревяшек
+                        #{calc('USD', 'JPY')} ¥ = 1$
+                        1 μBitcoin = #{calc('BTC', 'USD', 0.001)}$
                         1 гривна = #{calc('UAH', 'RUB')} деревяшек
                         1 бульба = #{calc('BYN', 'USD')}$ = #{calc('BYN', 'RUB')} деревяшек"""
                     msg.send txt, parseMode: 'Markdown'

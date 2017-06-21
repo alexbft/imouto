@@ -113,7 +113,7 @@ module.exports =
             if nya in ['няк', 'nya']
                 nya = {"ja": "にゃ", "en": "nyah", "ru": "ня"}[lang]
             else if nya in ['desu', 'десу']
-                nya = {"ja": "ですう", "en": "desoo", "ru": "дэсу"}[lang]
+                nya = {"ja": "ですう", "en": "desoo", "ru": "же"}[lang]
             else
                 nya = 'wtf'
             txt = txt.replace /([\!\?\.\,])/g, " #{nya}$1"

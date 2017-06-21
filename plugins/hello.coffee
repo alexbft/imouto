@@ -58,7 +58,7 @@ module.exports =
                 @trigger msg, "!#{q[1]} #{q[2]}"
                 return null
             if txt.endsWith '?'
-                orMatch = @find /([a-zA-Zа-яА-Яё0-9\s,]+)\bили\b([a-zA-Zа-яА-Яё0-9\s]+)/, txt
+                orMatch = @find /([a-zA-Zа-яА-ЯёЁ0-9\s,\-_]+)\bили\b([a-zA-Zа-яА-ЯёЁ0-9\s\-_]+)/, txt
                 if orMatch?
                     or1 = orMatch[1].trim()
                     isCall = @find /^(сестричка|сестрёнка|сестренка|сестра|бот|сис)\b(.+)/, or1

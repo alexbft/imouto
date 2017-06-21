@@ -65,7 +65,7 @@ module.exports = {
         return null;
       }
       if (txt.endsWith('?')) {
-        orMatch = this.find(/([a-zA-Zа-яА-Яё0-9\s,]+)\bили\b([a-zA-Zа-яА-Яё0-9\s]+)/, txt);
+        orMatch = this.find(/([a-zA-Zа-яА-ЯёЁ0-9\s,\-_]+)\bили\b([a-zA-Zа-яА-ЯёЁ0-9\s\-_]+)/, txt);
         if (orMatch != null) {
           or1 = orMatch[1].trim();
           isCall = this.find(/^(сестричка|сестрёнка|сестренка|сестра|бот|сис)\b(.+)/, or1);
