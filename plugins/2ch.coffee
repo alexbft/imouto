@@ -43,7 +43,7 @@ fixText = (text) ->
 getPostText = (post) ->
   text = fixText(post.comment).trim()
   if post.files.length > 0 and post.files[0].nsfw == 0
-    text += "\n\nhttps://#{HOST}/#{BOARD}/#{post.files[0].path}"
+    text += "\n\nhttps://#{HOST}#{post.files[0].path}"
   text
 
 module.exports =

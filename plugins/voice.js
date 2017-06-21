@@ -148,7 +148,7 @@ module.exports = {
         nya = {
           "ja": "ですう",
           "en": "desoo",
-          "ru": "дэсу"
+          "ru": "же"
         }[lang];
       } else {
         nya = 'wtf';
