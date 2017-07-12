@@ -3,15 +3,20 @@ logger = require 'winston'
 misc = require '../lib/misc'
 config = require '../lib/config'
 pq = require '../lib/promise'
+ph = new (require 'telegraph-node')
+xor = require 'lodash.xor'
 
 search = ->
     misc.get "https://openexchangerates.org/api/latest.json",
         qs:
             app_id: config.options.exchangekey
+            show_alternative: 1
         json: true
 
 getCurrencies = ->
     misc.get "https://openexchangerates.org/api/currencies.json",
+        qs:
+            show_alternative: 1
         json: true
 
 unpack = (code) ->
@@ -46,7 +51,33 @@ formatDate = (date) ->
 module.exports =
     name: 'Currency'
     pattern: /!(курс|деньги)(?:\s+([\d\.]+)?\s*([A-Za-z]{3})\s*([A-Za-z]{3})?)?\s*$/
-    isConf: true    
+    isConf: true
+
+    lastCurr: []
+    lastCurrUrl: 'Денег нет'
+
+    money: (msg) -> (c) =>
+        diff = xor @lastCurr, Object.keys c
+        cond = @lastCurr.length > 0 and diff.length == 0
+        return msg.send @lastCurrUrl if cond
+
+        @lastCurr = Object.keys c
+        nodes = ({
+            tag: 'p'
+            children: [
+                tag: 'b'
+                children: [k],
+                " - #{v}"
+            ]
+        } for k, v of c)
+        ph.editPage(
+            config.options.telegraph, 
+            'Dengi-07-12-2', 
+            'Деньги', 
+            nodes
+        ).then ({ url }) =>
+            @lastCurrUrl = url
+            msg.send url
 
     searchCached: ->
         if @lastResultTime? and Date.now() - @lastResultTime < 1800 * 1000 # 30 min
@@ -56,12 +87,9 @@ module.exports =
 
     onMsg: (msg, safe) ->
         if msg.match[1].toLowerCase() == 'деньги'
-            buf = ''
-            safe getCurrencies().then (c) ->
-                for k, v of c
-                    buf += "#{k} - #{v}\n"
-                msg.send buf
+            safe getCurrencies().then (@money msg)
             return
+
         if msg.match[3]?
             amount = if msg.match[2]? then Number(msg.match[2]) else 1
             reqFrom = msg.match[3].toUpperCase()
@@ -73,6 +101,7 @@ module.exports =
             resQuery = safe pq.all [@searchCached()]
         else
             resQuery = safe pq.all [search(), oil()]
+
         resQuery.then ([json, oil]) =>
             try            
                 @lastResult = json
@@ -81,7 +110,11 @@ module.exports =
                 calc = (from, to, amount = 1) ->
                     f = json.rates[from]
                     t = json.rates[to]
-                    '*' + (t / f * amount).toFixed(2) + '*'
+                    n = (t / f * amount)
+                    f = -Math.floor(Math.log10(n)) + 1
+                    fix = if f <= 0 then 2 else f
+                    '*' + n.toFixed(fix) + '*'
+
                 if isSpecific
                     if amount > 0 and amount < 1000000000
                         if reqFrom of json.rates and reqTo of json.rates
@@ -93,6 +126,7 @@ module.exports =
                                 reqToS = 'новоперков'
                             else
                                 reqToS = reqTo
+
                             txt = "#{amount} #{reqFrom} = #{calc(reqFrom, reqTo, amount)} #{reqToS}"
                             msg.send txt, parseMode: 'Markdown'
                         else
@@ -108,7 +142,7 @@ module.exports =
                         1 € = #{calc('EUR', 'RUB')} деревяшек
                         1 Swiss franc = #{calc('CHF', 'RUB')} деревяшек
                         #{calc('USD', 'JPY')} ¥ = 1$
-                        1 μBitcoin = #{calc('BTC', 'USD', 0.001)}$
+                        1 Bitcoin = #{calc('BTC', 'ETH')} ETH = #{calc('BTC', 'USD', 1, 0)}$
                         1 гривна = #{calc('UAH', 'RUB')} деревяшек
                         1 бульба = #{calc('BYN', 'USD')}$ = #{calc('BYN', 'RUB')} деревяшек"""
                     msg.send txt, parseMode: 'Markdown'

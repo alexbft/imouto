@@ -30,3 +30,6 @@ ivona = ???
 
 # openweathermap api key
 weathermap = ???
+
+# telegraph api key
+telegraph = ???
