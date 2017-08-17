@@ -64,7 +64,7 @@ module.exports = class Plugin
 
     checkSudo: (msg) ->
         if !@isSudo(msg)
-            logger.info("Sudo failed")
+            logger.info("#{msg.from.id} is not in the sudoers file. This incident will be reported.")
             if @warnPrivileged
                 msg.reply("You are not my master!")
             false

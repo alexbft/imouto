@@ -8,6 +8,8 @@ data/*.html
 plugins/_*.*
 node_modules
 .idea
+.vscode
+.history
 
 .DS_Store
 .DS_Store?
