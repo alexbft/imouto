@@ -184,7 +184,7 @@ module.exports = {
               return msg.reply('Не могу посчитать!');
             }
           } else {
-            txt = "Курс на *" + (formatDate(date)) + "*\n\n1 Brent = *" + ((ref = oil != null ? oil.toFixed(2) : void 0) != null ? ref : '???') + "*$\n1 $ = " + (calc('USD', 'RUB')) + " деревяшек\n1 € = " + (calc('EUR', 'RUB')) + " деревяшек\n1 Swiss franc = " + (calc('CHF', 'RUB')) + " деревяшек\n" + (calc('USD', 'JPY')) + " ¥ = 1$\n1 Bitcoin = " + (calc('BTC', 'ETH')) + " ETH = " + (calc('BTC', 'USD', 1, 0)) + "$\n1 гривна = " + (calc('UAH', 'RUB')) + " деревяшек\n1 бульба = " + (calc('BYN', 'USD')) + "$ = " + (calc('BYN', 'RUB')) + " деревяшек";
+            txt = "Курс на *" + (formatDate(date)) + "*\n\n1 Brent = *" + ((ref = oil != null ? oil.toFixed(2) : void 0) != null ? ref : '???') + "*$\n1 $ = " + (calc('USD', 'RUB')) + " деревяшек\n1 € = " + (calc('EUR', 'RUB')) + " деревяшек\n1 Swiss franc = " + (calc('CHF', 'RUB')) + " деревяшек\n" + (calc('USD', 'JPY')) + " ¥ = 1$\n1 Bitcoin = " + (calc('BTC', 'ETH')) + " ETH = " + (calc('BTC', 'USD', 1, 0)) + "$\n" + (calc('USD', 'UAH')) + " укрорублей = 1$\n1 бульба = " + (calc('BYN', 'USD')) + "$ = " + (calc('BYN', 'RUB')) + " деревяшек";
             return msg.send(txt, {
               parseMode: 'Markdown'
             });

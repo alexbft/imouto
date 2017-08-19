@@ -143,7 +143,7 @@ module.exports =
                         1 Swiss franc = #{calc('CHF', 'RUB')} деревяшек
                         #{calc('USD', 'JPY')} ¥ = 1$
                         1 Bitcoin = #{calc('BTC', 'ETH')} ETH = #{calc('BTC', 'USD', 1, 0)}$
-                        1 гривна = #{calc('UAH', 'RUB')} деревяшек
+                        #{calc('USD', 'UAH')} укрорублей = 1$
                         1 бульба = #{calc('BYN', 'USD')}$ = #{calc('BYN', 'RUB')} деревяшек"""
                     msg.send txt, parseMode: 'Markdown'
             catch e
