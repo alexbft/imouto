@@ -112,7 +112,7 @@ module.exports =
                     t = json.rates[to]
                     n = (t / f * amount)
                     f = -Math.floor(Math.log10(n)) + 1
-                    fix = if f <= 0 then 2 else f
+                    fix = if f < 2 then 2 else f
                     '*' + n.toFixed(fix) + '*'
 
                 if isSpecific
