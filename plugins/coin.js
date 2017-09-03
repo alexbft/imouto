@@ -72,7 +72,7 @@ module.exports = {
               dataFrom = getData(reqFrom);
               dataTo = getData(reqTo);
               if ((dataFrom != null) && (dataTo != null)) {
-                txt = amount + " " + dataFrom.name + " = " + (calc(dataFrom, dataTo, amount)) + " " + dataTo.name + "\n1h: *" + dataFrom.percent_change_1h + "* 24h: *" + dataFrom.percent_change_24h + "* 7d: *" + dataFrom.percent_change_7d + "*";
+                txt = amount + " " + dataFrom.name + " = " + (calc(dataTo, dataFrom, amount)) + " " + dataTo.name + "\n1h: *" + dataFrom.percent_change_1h + "* 24h: *" + dataFrom.percent_change_24h + "* 7d: *" + dataFrom.percent_change_7d + "*";
                 return msg.send(txt, {
                   parseMode: 'Markdown'
                 });

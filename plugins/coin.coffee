@@ -44,7 +44,7 @@ module.exports =
                         dataTo = getData reqTo
                         if dataFrom? and dataTo?
                             txt = """
-                                #{amount} #{dataFrom.name} = #{calc(dataFrom, dataTo, amount)} #{dataTo.name}
+                                #{amount} #{dataFrom.name} = #{calc(dataTo, dataFrom, amount)} #{dataTo.name}
                                 1h: *#{dataFrom.percent_change_1h}* 24h: *#{dataFrom.percent_change_24h}* 7d: *#{dataFrom.percent_change_7d}*"""
                             msg.send txt, parseMode: 'Markdown'
                         else if dataFrom?
