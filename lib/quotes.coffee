@@ -4,7 +4,7 @@ fs = require 'fs'
 misc = require './misc'
 msgCache = require './msg_cache'
 
-exports.QUOTE_MERGE_TIMEOUT = QUOTE_MERGE_TIMEOUT = 500
+exports.QUOTE_MERGE_TIMEOUT = QUOTE_MERGE_TIMEOUT = 10000
 
 exports.THUMBS_UP = String.fromCodePoint(0x1f44d) + String.fromCodePoint(0x1f3fb)
 exports.THUMBS_DOWN = String.fromCodePoint(0x1f44e) + String.fromCodePoint(0x1f3fb)
