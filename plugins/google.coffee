@@ -32,7 +32,7 @@ module.exports =
             return
         safe search txt
         .then (results) ->
-            if results.length == 0
+            if not results? or results.length == 0
                 msg.send 'Ничего не найдено!', reply: reply_to_id
             else
                 result = results[0]
