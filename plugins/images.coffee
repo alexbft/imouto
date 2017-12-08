@@ -2,6 +2,8 @@ logger = require 'winston'
 config = require '../lib/config'
 misc = require '../lib/misc'
 
+CB_DELAY = 1500
+
 search = (txt, rsz = 1, offset = 1) ->
     misc.get "https://www.googleapis.com/customsearch/v1?",
         qs:
@@ -64,6 +66,13 @@ module.exports =
         if context.isDisabled
             cb.answer ''
             return
+
+        if not @bot.isSudo cb
+            now = Date.now()
+            if @lastClick? and now - @lastClick < CB_DELAY
+                cb.answer 'Слишком много запросов, подождите 3 секунды...'
+                return
+            @lastClick = now
 
         context.msg = msg
         switch cb.data
