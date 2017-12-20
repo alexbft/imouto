@@ -38,6 +38,12 @@ module.exports =
                     fix = if f < 2 then 2 else f
                     '*' + n.toFixed(fix) + '*'
 
+                calcBtc = (from, amount = 1) ->
+                    n = (Number from.price_btc) * amount
+                    f = -Math.floor(Math.log10(n)) + 3
+                    fix = if f < 4 then 4 else f
+                    '*' + n.toFixed(fix) + '*'
+
                 if isSpecific
                     if amount > 0 and amount <= 1000000000
                         dataFrom = getData reqFrom
@@ -61,9 +67,9 @@ module.exports =
                         1 Bitcoin = #{calcUsd getData 'BTC'}$
                         1 Bitcoin Cash = #{calcUsd getData 'BCH'}$
                         1 Ethereum = #{calcUsd getData 'ETH'}$
-                        1 Litecoin = #{calc getData 'LTC'} BTC
-                        1 Dash = #{calc getData 'DASH'} BTC
-                        1 Ripple = #{calc getData 'XRP'} BTC"""
+                        1 Litecoin = #{calcBtc getData 'LTC'} BTC
+                        1 Dash = #{calcBtc getData 'DASH'} BTC
+                        1 Ripple = #{calcBtc getData 'XRP'} BTC"""
                     msg.send txt, parseMode: 'Markdown'
             catch e
                 @_onError msg, e

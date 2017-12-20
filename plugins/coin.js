@@ -26,7 +26,7 @@ module.exports = {
     resQuery = safe(search());
     return resQuery.then((function(_this) {
       return function(json) {
-        var calc, calcUsd, dataFrom, dataTo, e, getData, txt;
+        var calc, calcBtc, calcUsd, dataFrom, dataTo, e, getData, txt;
         getData = function(code) {
           var q;
           if (code == null) {
@@ -67,6 +67,16 @@ module.exports = {
             fix = f < 2 ? 2 : f;
             return '*' + n.toFixed(fix) + '*';
           };
+          calcBtc = function(from, amount) {
+            var f, fix, n;
+            if (amount == null) {
+              amount = 1;
+            }
+            n = (Number(from.price_btc)) * amount;
+            f = -Math.floor(Math.log10(n)) + 3;
+            fix = f < 4 ? 4 : f;
+            return '*' + n.toFixed(fix) + '*';
+          };
           if (isSpecific) {
             if (amount > 0 && amount <= 1000000000) {
               dataFrom = getData(reqFrom);
@@ -88,7 +98,7 @@ module.exports = {
               return msg.reply('Не могу посчитать!');
             }
           } else {
-            txt = "1 Bitcoin = " + (calcUsd(getData('BTC'))) + "$\n1 Bitcoin Cash = " + (calcUsd(getData('BCH'))) + "$\n1 Ethereum = " + (calcUsd(getData('ETH'))) + "$\n1 Litecoin = " + (calc(getData('LTC'))) + " BTC\n1 Dash = " + (calc(getData('DASH'))) + " BTC\n1 Ripple = " + (calc(getData('XRP'))) + " BTC";
+            txt = "1 Bitcoin = " + (calcUsd(getData('BTC'))) + "$\n1 Bitcoin Cash = " + (calcUsd(getData('BCH'))) + "$\n1 Ethereum = " + (calcUsd(getData('ETH'))) + "$\n1 Litecoin = " + (calcBtc(getData('LTC'))) + " BTC\n1 Dash = " + (calcBtc(getData('DASH'))) + " BTC\n1 Ripple = " + (calcBtc(getData('XRP'))) + " BTC";
             return msg.send(txt, {
               parseMode: 'Markdown'
             });
