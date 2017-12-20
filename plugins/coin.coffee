@@ -61,7 +61,9 @@ module.exports =
                         1 Bitcoin = #{calcUsd getData 'BTC'}$
                         1 Bitcoin Cash = #{calcUsd getData 'BCH'}$
                         1 Ethereum = #{calcUsd getData 'ETH'}$
-                        1 Litecoin = #{calcUsd getData 'LTC'}$"""
+                        1 Litecoin = #{calc getData 'LTC'} BTC
+                        1 Dash = #{calc getData 'DASH'} BTC
+                        1 Ripple = #{calc getData 'XRP'} BTC"""
                     msg.send txt, parseMode: 'Markdown'
             catch e
                 @_onError msg, e

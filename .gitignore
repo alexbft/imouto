@@ -1,4 +1,4 @@
-config/main.config
+main.config
 logs/*.log
 logs/new
 data/*.txt

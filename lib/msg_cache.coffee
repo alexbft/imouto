@@ -1,3 +1,5 @@
+FileDb = require './filedb'
+
 prevCacheMessages = {}
 cacheMessages = {}
 cacheUsers = {}
@@ -39,4 +41,11 @@ exports.add = (msg) ->
     cacheUsers[msg.from.id] = msg.from
     if msg.forward_from?
         cacheUsers[msg.forward_from.id] = msg.forward_from
+    FileDb.get('last_timestamp').update (data) ->
+        chatId = msg.chat.id
+        fromId = msg.from.id
+        data[chatId] ?= {}
+        data[chatId][fromId] ?= {}
+        data[chatId][fromId].prev = data[chatId][fromId].last
+        data[chatId][fromId].last = msg.date
 
