@@ -1,8 +1,12 @@
 misc = require '../lib/misc'
+promise = require '../lib/promise'
 
 search = ->
-    misc.get "https://api.coinmarketcap.com/v1/ticker/",
+    coins = misc.get "https://api.coinmarketcap.com/v1/ticker/",
         json: true
+    rkn = misc.get "https://2018.schors.spb.ru/d1_ipblock.json",
+        json: true
+    promise.all([coins, rkn])
 
 module.exports =
     name: 'CryptoCurrency'
@@ -18,7 +22,7 @@ module.exports =
         else
             isSpecific = false
         resQuery = safe search()
-        resQuery.then (json) =>
+        resQuery.then ([json, rkn]) =>
             getData = (code) ->
                 if not code?
                     return null
@@ -69,7 +73,8 @@ module.exports =
                         1 Ethereum = #{calcUsd getData 'ETH'}$
                         1 Litecoin = #{calcBtc getData 'LTC'} BTC
                         1 Dash = #{calcBtc getData 'DASH'} BTC
-                        1 Ripple = #{calcBtc getData 'XRP'} BTC"""
+                        1 Ripple = #{calcBtc getData 'XRP'} BTC
+                        1 Roskomnadzor = *#{rkn[rkn.length - 1].y}* блокировок"""
                     msg.send txt, parseMode: 'Markdown'
             catch e
                 @_onError msg, e
